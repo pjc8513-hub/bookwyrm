@@ -1,0 +1,132 @@
+:root {
+    --primary-color: #2c3e50;
+    --accent-color: #3498db;
+    --text-color: #333;
+    --bg-color: #f4f4f4;
+    --redacted-color: #bdc3c7;
+    --revealed-color: #ecf0f1;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    background: white;
+    padding: 2rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 2rem;
+    border-radius: 8px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.puzzle-area {
+    margin-bottom: 2rem;
+}
+
+.marc-field {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.field-tag {
+    font-weight: bold;
+    color: #7f8c8d;
+    margin-right: 0.5rem;
+    display: inline-block;
+    width: 40px;
+}
+
+.field-content {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.word {
+    display: inline-block;
+    margin-right: 0.5rem;
+    white-space: nowrap;
+}
+
+.char {
+    display: inline-block;
+    min-width: 10px;
+    border-bottom: 2px solid var(--redacted-color);
+    text-align: center;
+    margin: 0 1px;
+    color: transparent;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.char.revealed {
+    color: var(--text-color);
+    border-bottom-color: transparent;
+}
+
+.char.space {
+    border-bottom: none;
+    width: 10px;
+}
+
+.char.punctuation {
+    color: var(--text-color); /* Usually punctuation is visible or we can choose to hide it */
+    border-bottom: none;
+}
+
+/* Specific styling for the target field (245) to make it stand out? 
+   No, the requirement is "context fields present", implies equality in display but 245 is the win condition.
+*/
+
+.keyboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.key {
+    padding: 0.8rem 1.2rem;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    text-transform: uppercase;
+    transition: background-color 0.2s;
+}
+
+.key:hover {
+    background-color: var(--accent-color);
+}
+
+.key:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.hidden {
+    display: none;
+}

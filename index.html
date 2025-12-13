@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Catalog Redactle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Library Catalog Redactle</h1>
+            <p>Guess the hidden title by suggesting letters!</p>
+        </header>
+
+        <div id="game-status" class="status-bar">
+            <span id="lives">Lives: 6</span>
+            <span id="message"></span>
+        </div>
+
+        <div id="puzzle-container" class="puzzle-area">
+            <!-- Fields will be injected here -->
+        </div>
+
+        <div id="controls" class="controls-area">
+            <div id="keyboard" class="keyboard">
+                <!-- Keyboard keys will be generated here -->
+            </div>
+        </div>
+        
+        <div id="debug-controls" style="margin-top: 20px; display: none;">
+             <button id="next-record">Next Record</button>
+        </div>
+    </div>
+
+    <script src="marc_parser.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
