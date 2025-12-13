@@ -16,6 +16,17 @@ class Game {
         this.displayFields = [
             '100', '245', '520', '600', '650', '651', '655', '700'
         ];
+
+        this.fieldLabels = {
+            '245': 'Title',
+            '100': 'Author',
+            '600': 'Topic',
+            '650': 'Topic',
+            '520': 'Summary',
+            '651': 'Geographic',
+            '655': 'Genre',
+            '700': 'Contributor'
+        };
     }
 
     async init() {
@@ -108,8 +119,13 @@ class Game {
     getAllContent() {
         if (!this.currentRecord) return "";
         let content = "";
+        let summaryFound = false;
         this.currentRecord.fields.forEach(field => {
             if (this.displayFields.includes(field.tag) && field.subfields) {
+                if (field.tag === '520') {
+                    if (summaryFound) return;
+                    summaryFound = true;
+                }
                 field.subfields.forEach(sf => {
                     if (sf.code === 'a') content += sf.data;
                     // Note: User only listed $a for most, but we might want to be robust.
@@ -165,8 +181,15 @@ class Game {
 
         if (!this.currentRecord) return;
 
+        let summaryDisplayed = false;
+
         this.currentRecord.fields.forEach(field => {
             if (this.displayFields.includes(field.tag) && field.subfields) {
+                if (field.tag === '520') {
+                    if (summaryDisplayed) return; // Only accept the first 520
+                    summaryDisplayed = true;
+                }
+
                 // Find subfield a
                 const sf = field.subfields.find(s => s.code === 'a');
                 if (sf) {
@@ -175,7 +198,8 @@ class Game {
 
                     const tagSpan = document.createElement('span');
                     tagSpan.classList.add('field-tag');
-                    tagSpan.textContent = field.tag;
+                    // Use label if available, otherwise tag
+                    tagSpan.textContent = this.fieldLabels[field.tag] || field.tag;
                     fieldDiv.appendChild(tagSpan);
 
                     const contentDiv = document.createElement('span');

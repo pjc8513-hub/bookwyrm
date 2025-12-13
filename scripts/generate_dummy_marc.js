@@ -102,6 +102,15 @@ const records = [
         buildField('245', '1', '0', [{ code: 'a', value: 'Pride and Prejudice' }]),
         buildField('520', ' ', ' ', [{ code: 'a', value: 'Since its immediate success in 1813, Pride and Prejudice has remained one of the most popular novels.' }]),
         buildField('650', ' ', '0', [{ code: 'a', value: 'Social classes' }, { code: 'x', value: 'Fiction' }])
+    ],
+    [
+        // Test record for multiple 520s
+        buildField('001', '', '', '999999'),
+        buildField('100', '1', ' ', [{ code: 'a', value: 'Test, Author' }]),
+        buildField('245', '1', '0', [{ code: 'a', value: 'Test Record with Duplicate Summaries' }]),
+        buildField('520', ' ', ' ', [{ code: 'a', value: 'First Summary (Should appear).' }]),
+        buildField('520', ' ', ' ', [{ code: 'a', value: 'Second Summary (Should NOT appear).' }]),
+        buildField('650', ' ', '0', [{ code: 'a', value: 'Testing' }])
     ]
 ];
 
