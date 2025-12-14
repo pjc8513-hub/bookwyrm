@@ -32,6 +32,7 @@ class Game {
     async init() {
         await this.loadData();
         this.setupKeyboard();
+        this.setupGameControls();
         this.startNewRound();
 
         document.getElementById('next-record').addEventListener('click', () => {
@@ -89,6 +90,18 @@ class Game {
                 this.handleGuess(char);
             }
         });
+    }
+
+    setupGameControls() {
+        document.getElementById('btn-giveup').addEventListener('click', () => this.giveUp());
+        document.getElementById('btn-newgame').addEventListener('click', () => this.startNewRound());
+    }
+
+    giveUp() {
+        if (this.won || this.lost) return;
+        this.lost = true;
+        this.lives = 0;
+        this.updateUI();
     }
 
     handleGuess(char) {
@@ -254,5 +267,15 @@ class Game {
                 key.disabled = false;
             }
         });
+
+        // Update Game Action Buttons
+        const giveUpBtn = document.getElementById('btn-giveup');
+        const newGameBtn = document.getElementById('btn-newgame');
+
+        if (this.won || this.lost) {
+            giveUpBtn.classList.add('hidden');
+            newGameBtn.classList.remove('hidden');
+            newGameBtn.classList.add('hidden');
+        }
     }
 }

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library Catalog Redactle</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -26,14 +28,20 @@
             <div id="keyboard" class="keyboard">
                 <!-- Keyboard keys will be generated here -->
             </div>
+
+            <div class="game-actions">
+                <button id="btn-giveup" class="btn btn-giveup">Give Up</button>
+                <button id="btn-newgame" class="btn btn-newgame hidden">New Game</button>
+            </div>
         </div>
-        
+
         <div id="debug-controls" style="margin-top: 20px; display: none;">
-             <button id="next-record">Next Record</button>
+            <button id="next-record">Next Record</button>
         </div>
     </div>
 
     <script src="marc_parser.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>
