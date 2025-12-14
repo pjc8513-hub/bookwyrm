@@ -116,5 +116,12 @@ const records = [
 
 const fileData = Buffer.concat(records.map(buildRecord));
 
-fs.writeFileSync(path.join(__dirname, '../data/test.mrc'), fileData);
-console.log("Created data/test.mrc");
+const targetFile = path.join(__dirname, '../data/test.mrc');
+
+if (fs.existsSync(targetFile)) {
+    console.log("data/test.mrc already exists. Skipping generation to prevent overwrite.");
+} else {
+    fs.writeFileSync(targetFile, fileData);
+    console.log("Created data/test.mrc");
+}
+

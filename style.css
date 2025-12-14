@@ -22,7 +22,7 @@ body {
     max-width: 800px;
     background: white;
     padding: 2rem;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin: 2rem;
     border-radius: 8px;
 }
@@ -40,20 +40,39 @@ header {
     margin-bottom: 1rem;
     padding: 0.5rem;
     border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    /* Allow wrapping on small screens */
 }
 
 .field-tag {
     font-weight: bold;
     color: #7f8c8d;
     margin-right: 0.5rem;
-    display: inline-block;
-    width: 40px;
+    /* Removed fixed width to allow longer labels */
+    min-width: 40px;
+    flex-shrink: 0;
 }
 
 .field-content {
     font-family: 'Courier New', Courier, monospace;
     font-size: 1.1rem;
     line-height: 1.6;
+    flex-grow: 1;
+}
+
+@media (max-width: 600px) {
+    .marc-field {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .field-tag {
+        margin-bottom: 0.2rem;
+        color: var(--accent-color);
+        /* Highlight label on mobile */
+    }
 }
 
 .word {
@@ -83,7 +102,8 @@ header {
 }
 
 .char.punctuation {
-    color: var(--text-color); /* Usually punctuation is visible or we can choose to hide it */
+    color: var(--text-color);
+    /* Usually punctuation is visible or we can choose to hide it */
     border-bottom: none;
 }
 
