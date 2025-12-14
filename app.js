@@ -273,11 +273,9 @@ class Game {
         const newGameBtn = document.getElementById('btn-newgame');
 
         if (this.won || this.lost) {
-            console.log(this.won, this.lost);
             giveUpBtn.classList.add('hidden');
             newGameBtn.classList.remove('hidden');
         } else {
-            console.log(this.won, this.lost);
             giveUpBtn.classList.remove('hidden');
             newGameBtn.classList.add('hidden');
         }
