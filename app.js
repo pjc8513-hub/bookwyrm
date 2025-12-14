@@ -275,6 +275,8 @@ class Game {
         if (this.won || this.lost) {
             giveUpBtn.classList.add('hidden');
             newGameBtn.classList.remove('hidden');
+        } else {
+            giveUpBtn.classList.remove('hidden');
             newGameBtn.classList.add('hidden');
         }
     }
