@@ -195,3 +195,121 @@ header {
 .hidden {
     display: none !important;
 }
+
+/* Secret Book Club Styles */
+.game-area {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.guess-block {
+    background-color: #EDE7DC;
+    /* Beige/Tan color matching the screenshot style */
+    color: #000;
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 700;
+    text-align: center;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+}
+
+.guess-block.winner {
+    background-color: #2ecc71;
+    color: white;
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+}
+
+.input-container {
+    background-color: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.helper-text {
+    font-size: 0.9rem;
+    color: #bdc3c7;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.game-input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.game-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.btn-guess {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.btn-guess:hover {
+    background-color: var(--accent-color);
+}
+
+.message-area {
+    text-align: center;
+    min-height: 1.5rem;
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+/* Navigation Styles */
+.nav-bar {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    background-color: var(--primary-color);
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border-radius: 8px 8px 0 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+    background-color: var(--accent-color);
+}
+
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
