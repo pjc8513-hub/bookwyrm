@@ -20,7 +20,7 @@
         </header>
 
         <div id="game-status" class="status-bar">
-            <span id="lives">Lives: 6</span>
+            <span id="guess-count">Guesses: 0</span>
             <span id="message"></span>
         </div>
 
@@ -41,6 +41,20 @@
 
         <div id="debug-controls" style="margin-top: 20px; display: none;">
             <button id="next-record">Next Record</button>
+        </div>
+
+        <!-- Title Guess Modal -->
+        <div id="title-guess-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Guess the Title</h2>
+                <p>Enter the full title (excluding subtitle logic if any):</p>
+                <input type="text" id="title-input" class="game-input" placeholder="Type title here...">
+                <div class="modal-actions">
+                    <button id="btn-submit-guess" class="btn btn-guess">Submit Guess</button>
+                    <button id="btn-cancel-guess" class="btn btn-giveup">Cancel</button>
+                </div>
+            </div>
         </div>
     </div>
 

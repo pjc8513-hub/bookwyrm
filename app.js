@@ -8,18 +8,20 @@ class Game {
         this.records = [];
         this.currentRecord = null;
         this.guessedLetters = new Set();
-        this.lives = 6;
+        this.totalGuesses = 0;
         this.won = false;
-        this.lost = false;
+        this.lost = false; // "lost" might be used for 'give up', or we can repurpose it.
+        // Actually, simpler to keep it for 'give up' state where we reveal everything.
 
         // Relevant fields to display
         this.displayFields = [
-            '100', '245', '520', '600', '650', '651', '655', '700'
+            '100', '245', '264', '520', '600', '650', '651', '655', '700'
         ];
 
         this.fieldLabels = {
             '245': 'Title',
             '100': 'Author',
+            '264': 'Publication',
             '600': 'Topic',
             '650': 'Topic',
             '520': 'Summary',
@@ -27,12 +29,20 @@ class Game {
             '655': 'Genre',
             '700': 'Contributor'
         };
+
+        // Configuration for which subfields to display and in what order
+        this.subfieldConfig = {
+            '100': ['a', 'd'],
+            '264': ['c'],
+            'default': ['a']
+        };
     }
 
     async init() {
         await this.loadData();
         this.setupKeyboard();
         this.setupGameControls();
+        this.setupTitleGuessModal();
         this.startNewRound();
 
         document.getElementById('next-record').addEventListener('click', () => {
@@ -62,7 +72,7 @@ class Game {
         const randomIndex = Math.floor(Math.random() * this.records.length);
         this.currentRecord = this.records[randomIndex];
         this.guessedLetters.clear();
-        this.lives = 6;
+        this.totalGuesses = 0;
         this.won = false;
         this.lost = false;
 
@@ -71,8 +81,10 @@ class Game {
 
     setupKeyboard() {
         const keyboard = document.getElementById('keyboard');
-        const updatedKeyboardInnerHTML = '';
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        // clear existing (if any)
+        keyboard.innerHTML = '';
 
         alphabet.split('').forEach(char => {
             const btn = document.createElement('button');
@@ -84,7 +96,12 @@ class Game {
         });
 
         // Also handle physical keyboard
+        // Remove previous listener potentially? better to just add once.
+        // But init is called once.
         document.addEventListener('keydown', (e) => {
+            // Only handle if modal is not open?
+            if (!document.getElementById('title-guess-modal').classList.contains('hidden')) return;
+
             const char = e.key.toUpperCase();
             if (alphabet.includes(char)) {
                 this.handleGuess(char);
@@ -97,10 +114,45 @@ class Game {
         document.getElementById('btn-newgame').addEventListener('click', () => this.startNewRound());
     }
 
+    setupTitleGuessModal() {
+        const modal = document.getElementById('title-guess-modal');
+        const closeBtn = modal.querySelector('.close-modal');
+        const cancelBtn = document.getElementById('btn-cancel-guess');
+        const submitBtn = document.getElementById('btn-submit-guess');
+        const input = document.getElementById('title-input');
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            input.value = '';
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        submitBtn.addEventListener('click', () => {
+            const guess = input.value;
+            if (guess.trim()) {
+                this.handleTitleGuess(guess);
+                closeModal();
+            }
+        });
+
+        // Allow Enter key in input
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const guess = input.value;
+                if (guess.trim()) {
+                    this.handleTitleGuess(guess);
+                    closeModal();
+                }
+            }
+        });
+    }
+
     giveUp() {
         if (this.won || this.lost) return;
         this.lost = true;
-        this.lives = 0;
+        // Reveal all
         this.updateUI();
     }
 
@@ -108,24 +160,44 @@ class Game {
         if (this.won || this.lost || this.guessedLetters.has(char)) return;
 
         this.guessedLetters.add(char);
-
-        // Check if the guess is "correct" (appears in the puzzle)
-        // Actually, in Redactle/Hangman, do we penalize for letters NOT in the HIDDEN title?
-        // Or not in ANY field?
-        // Requirement: "The user will guess one letter at a time ... and all instances of that letter across all fields will be revealed"
-        // "6 wrong guesses and they lost"
-        // Usually "wrong" means "not in the puzzle". 
-        // Let's assume "puzzle" means the entire set of visible fields? 
-        // Or just the winning field (245$a)? 
-        // User said: "When 245 $a is fully revealed, then the player has won. 6 wrong guesses and they lost"
-        // Typically in Hangman, a guess is valid if it appears ANYWHERE.
-
-        const content = this.getAllContent();
-        if (!content.toUpperCase().includes(char)) {
-            this.lives--;
-        }
+        this.totalGuesses++;
 
         this.checkWinCondition();
+        this.updateUI();
+    }
+
+    handleTitleGuess(guess) {
+        if (this.won || this.lost) return;
+
+        this.totalGuesses++;
+
+        // Normalize guess and target
+        const normalize = (str) => str.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+        // Get full title from 245
+        const titleField = this.currentRecord.fields.find(f => f.tag === '245');
+        let fullTitle = "";
+        if (titleField && titleField.subfields) {
+            // Combine all subfields for checking? Or just $a?
+            // User said "solve for the title" and mostly refers to 245.
+            // Usually 245 $a is the main title. $b is subtitle.
+            // Let's check against $a first, or maybe $a$b?
+            // Let's stick to $a for the "guessing the title" requirement to match the "hidden" part logic
+            // which mostly emphasized $a.
+            // But let's look at checkWinCondition, it checks $a.
+            const sf = titleField.subfields.find(s => s.code === 'a');
+            if (sf) fullTitle = sf.data;
+        }
+
+        if (normalize(guess) === normalize(fullTitle)) {
+            // Correct!
+            // Reveal everything
+            this.won = true;
+            // Also add all letters? Logic in updateUI handles 'won' state.
+        } else {
+            alert("Incorrect guess!");
+        }
+
         this.updateUI();
     }
 
@@ -141,9 +213,6 @@ class Game {
                 }
                 field.subfields.forEach(sf => {
                     if (sf.code === 'a') content += sf.data;
-                    // Note: User only listed $a for most, but we might want to be robust.
-                    // Requirement says "context fields present: ... 650 $a ... etc"
-                    // So we stick to $a for now.
                 });
             }
         });
@@ -151,12 +220,6 @@ class Game {
     }
 
     checkWinCondition() {
-        if (this.lives <= 0) {
-            this.lost = true;
-            this.lives = 0;
-            return;
-        }
-
         // Win if 245$a is fully revealed
         const titleField = this.currentRecord.fields.find(f => f.tag === '245');
         if (titleField && titleField.subfields) {
@@ -179,13 +242,13 @@ class Game {
     }
 
     updateUI() {
-        // Update Lives
-        document.getElementById('lives').textContent = `Lives: ${this.lives}`;
+        // Update Guess Count
+        document.getElementById('guess-count').textContent = `Guesses: ${this.totalGuesses}`;
 
         // Update Message
         const msgEl = document.getElementById('message');
-        if (this.won) msgEl.textContent = "YOU WON!";
-        else if (this.lost) msgEl.textContent = "GAME OVER";
+        if (this.won) msgEl.textContent = `YOU WON! Total Guesses: ${this.totalGuesses}`;
+        else if (this.lost) msgEl.textContent = `GAME OVER. Total Guesses: ${this.totalGuesses}`;
         else msgEl.textContent = "";
 
         // Update Puzzle Area
@@ -203,58 +266,86 @@ class Game {
                     summaryDisplayed = true;
                 }
 
-                // Find subfield a
-                const sf = field.subfields.find(s => s.code === 'a');
-                if (sf) {
-                    const fieldDiv = document.createElement('div');
-                    fieldDiv.classList.add('marc-field');
+                // Get subfields to display for this tag
+                const subfieldsToShow = this.subfieldConfig[field.tag] || this.subfieldConfig['default'];
 
-                    const tagSpan = document.createElement('span');
-                    tagSpan.classList.add('field-tag');
-                    // Use label if available, otherwise tag
-                    tagSpan.textContent = this.fieldLabels[field.tag] || field.tag;
-                    fieldDiv.appendChild(tagSpan);
+                // Iterate over each configured subfield code
+                subfieldsToShow.forEach(code => {
+                    const sf = field.subfields.find(s => s.code === code);
+                    if (sf) {
+                        const fieldDiv = document.createElement('div');
+                        fieldDiv.classList.add('marc-field');
 
-                    const contentDiv = document.createElement('span');
-                    contentDiv.classList.add('field-content');
+                        const tagSpan = document.createElement('span');
+                        tagSpan.classList.add('field-tag');
 
-                    // Render logic
-                    let text = sf.data;
-                    // We need to tokenize by words to handle wrapping nicely? 
-                    // Or just chars. CSS handles wrapping.
-                    // But we want to group "words" for better "hangman" feel logic if needed.
-                    // Simple char rendering:
+                        // Add subfield code indicator if it's not the main one, or just keep it simple?
+                        // User request didn't specify showing subfield codes, just the content.
+                        // However, for 100 $d, it might be nice to know it's separate? 
+                        // Actually, let's just use the main label. 
+                        // But if we have multiple subfields for the same tag (like 100 a and d), 
+                        // they will appear as separate lines with this loop structure.
+                        // This seems acceptable for now.
+                        tagSpan.textContent = this.fieldLabels[field.tag] || field.tag;
 
-                    const chars = text.split('');
-                    chars.forEach(char => {
-                        const charSpan = document.createElement('span');
-                        charSpan.classList.add('char');
-
-                        const upperChar = char.toUpperCase();
-
-                        if (this.isAlphaNumeric(upperChar)) {
-                            // If game over (lost), reveal everything but maybe style differently?
-                            if (this.lost || this.won || this.guessedLetters.has(upperChar)) {
-                                charSpan.classList.add('revealed');
-                                charSpan.textContent = char;
-                            } else {
-                                charSpan.textContent = "_"; // Placeholder for spacing
-                            }
-                        } else if (char === ' ') {
-                            charSpan.classList.add('space');
-                            charSpan.innerHTML = '&nbsp;';
-                        } else {
-                            // Punctuation
-                            charSpan.classList.add('punctuation');
-                            charSpan.textContent = char;
+                        // Inject Guess Button for Title (245) - only on $a
+                        if (field.tag === '245' && code === 'a' && !this.won && !this.lost) {
+                            const guessBtn = document.createElement('button');
+                            guessBtn.textContent = "Guess";
+                            guessBtn.classList.add('btn-title-guess');
+                            guessBtn.onclick = () => {
+                                document.getElementById('title-guess-modal').classList.remove('hidden');
+                                document.getElementById('title-input').focus();
+                            };
+                            tagSpan.appendChild(guessBtn);
                         }
 
-                        contentDiv.appendChild(charSpan);
-                    });
+                        fieldDiv.appendChild(tagSpan);
 
-                    fieldDiv.appendChild(contentDiv);
-                    container.appendChild(fieldDiv);
-                }
+                        const contentDiv = document.createElement('span');
+                        contentDiv.classList.add('field-content');
+
+                        // Render logic
+                        let text = sf.data;
+
+                        // Check if this specific field/subfield should be always revealed
+                        const isAlwaysRevealed =
+                            (field.tag === '520') ||
+                            (field.tag === '100' && code === 'd') ||
+                            (field.tag === '264' && code === 'c');
+
+                        const chars = text.split('');
+                        chars.forEach(char => {
+                            const charSpan = document.createElement('span');
+                            charSpan.classList.add('char');
+
+                            const upperChar = char.toUpperCase();
+
+                            if (this.isAlphaNumeric(upperChar)) {
+                                // If game over (lost) or won, reveal everything
+                                // OR if it's an always-revealed field
+                                if (this.lost || this.won || this.guessedLetters.has(upperChar) || isAlwaysRevealed) {
+                                    charSpan.classList.add('revealed');
+                                    charSpan.textContent = char;
+                                } else {
+                                    charSpan.textContent = "_"; // Placeholder for spacing
+                                }
+                            } else if (char === ' ') {
+                                charSpan.classList.add('space');
+                                charSpan.innerHTML = '&nbsp;';
+                            } else {
+                                // Punctuation
+                                charSpan.classList.add('punctuation');
+                                charSpan.textContent = char;
+                            }
+
+                            contentDiv.appendChild(charSpan);
+                        });
+
+                        fieldDiv.appendChild(contentDiv);
+                        container.appendChild(fieldDiv);
+                    }
+                });
             }
         });
 
