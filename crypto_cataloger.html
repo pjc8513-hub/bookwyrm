@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto-Cataloger</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Specific styles for Crypto-Cataloger that might not be in style.css yet */
+        .crypto-field {
+            margin-bottom: 2rem;
+            line-height: 2.5;
+        }
+
+        .word-group {
+            display: inline-block;
+            margin-right: 1.5rem;
+            white-space: nowrap;
+        }
+
+        .letter-stack {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            width: 1.5rem;
+            margin: 0 0.1rem;
+            vertical-align: top;
+            cursor: pointer;
+        }
+
+        .letter-slot {
+            border-bottom: 2px solid #333;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            height: 1.8rem;
+            color: #333;
+        }
+
+        .letter-slot.revealed {
+            color: #000;
+        }
+
+        .letter-slot.user-guess {
+            color: #007bff;
+            /* distinguish user guesses */
+        }
+
+        .letter-slot.incorrect-guess {
+            color: #dc3545;
+            /* Red for incorrect */
+        }
+
+        .cipher-number {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.2rem;
+        }
+
+        .punctuation-mark {
+            display: inline-block;
+            width: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+            vertical-align: top;
+            margin-top: 0.2rem;
+            /* visually align with letters */
+        }
+
+        .letter-stack.selected .letter-slot {
+            background-color: #e0f7fa;
+        }
+
+        /* Modal simple style if not in style.css */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .field-label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #444;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        #keyboard-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-top: 1px solid #ccc;
+            text-align: center;
+            display: none;
+            /* Only show on mobile or toggle */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Crypto-Cataloger</h1>
+            <nav class="nav-bar">
+                <a href="index.html" class="nav-link">MARC Hangman</a>
+                <a href="secret_book_club.html" class="nav-link">Secret Book Club</a>
+                <a href="crypto_cataloger.html" class="nav-link active">Crypto-Cataloger</a>
+            </nav>
+            <div class="game-actions-bar" style="margin-top: 1rem; text-align: right;">
+                <button id="btn-newgame" class="btn btn-newgame">New Puzzle</button>
+                <button id="btn-giveup" class="btn btn-giveup">Give Up</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="game-status" class="status-bar">
+                <span id="message"></span>
+            </div>
+
+            <div id="puzzle-container">
+                <!-- Puzzle content goes here -->
+            </div>
+        </main>
+
+        <!-- Hidden Input for mobile keyboard trigger -->
+        <input type="text" id="hidden-input"
+            style="opacity: 0; position: fixed; top: 0; left: 0; height: 1px; width: 1px; pointer-events: none;">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="marc_parser.js"></script>
+    <script src="crypto_cataloger.js"></script>
+</body>
+
+</html>
