@@ -419,19 +419,44 @@ class CryptoGame {
         // Listen for typing into the hidden input (for mobile)
         const hiddenInput = document.getElementById('hidden-input');
 
+        // Primary: beforeinput (handles composition-aware input on many platforms)
         hiddenInput.addEventListener('beforeinput', (e) => {
             if (!this.selectedNumber) return;
 
-            // Handle delete
+            // Handle delete/backspace via inputType
             if (e.inputType === 'deleteContentBackward') {
                 this.handleKeyInput({ key: 'Backspace' });
                 e.preventDefault();
+                hiddenInput.value = '';
                 return;
             }
 
-            // Handle letter input
+            // Handle single-letter input when available
             if (e.data && /^[a-zA-Z]$/.test(e.data)) {
                 this.handleKeyInput({ key: e.data.toUpperCase() });
+                e.preventDefault();
+                hiddenInput.value = '';
+            }
+        });
+
+        // Fallback: input event (covers some Android keyboards that don't reliably fire beforeinput)
+        hiddenInput.addEventListener('input', (e) => {
+            if (!this.selectedNumber) return;
+            const val = e.target.value || '';
+            if (!val) return;
+            const ch = val.slice(-1);
+            if (/^[a-zA-Z]$/.test(ch)) {
+                this.handleKeyInput({ key: ch.toUpperCase() });
+            }
+            // Always clear the field so next input will be reported
+            e.target.value = '';
+        });
+
+        // Capture Backspace on keydown as an additional fallback
+        hiddenInput.addEventListener('keydown', (e) => {
+            if (!this.selectedNumber) return;
+            if (e.key === 'Backspace') {
+                this.handleKeyInput({ key: 'Backspace' });
                 e.preventDefault();
             }
         });
