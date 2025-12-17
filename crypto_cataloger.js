@@ -468,45 +468,11 @@ selectNumber(num, targetEle = null) {
     updateMessage(msg) {
         document.getElementById('message').textContent = msg;
     }
-
-    setupInputListener() {
-        const input = document.getElementById('hidden-input');
-        input.addEventListener('input', (e) => {
-            if (this.documentSolved || !this.selectedNumber) return;
-
-            const key = e.target.value.toUpperCase();
-            input.value = ''; // Clear after processing
-            let changed = false;
-
-            if (key === '') return; // Ignore empty input
-
-            if (key === ' ' || key === 'BACKSPACE' || key === 'DELETE') {
-                if (this.userGuesses[this.selectedNumber]) {
-                    delete this.userGuesses[this.selectedNumber];
-                    changed = true;
-                }
-            } else if (/^[A-Z]$/.test(key)) {
-                this.userGuesses[this.selectedNumber] = key;
-                changed = true;
-            }
-
-            if (changed) {
-                const stacks = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
-                requestAnimationFrame(() => {
-                    stacks.forEach(stack => {
-                        const slot = stack.querySelector('.letter-slot');
-                        this.updateStackVisuals(stack, this.selectedNumber, slot);
-                    });
-                    this.checkForCompletion();
-                });
-            }
-        });
-    }
 }
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
     const game = new CryptoGame();
-    yourPuzzleInstance.setupInputListener();
     game.init();
 });
