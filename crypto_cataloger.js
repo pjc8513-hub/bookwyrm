@@ -260,33 +260,24 @@ class CryptoGame {
         }
     }
 
-    selectNumber(num) {
+    selectNumber(num, targetEle = null) {
         if (this.documentSolved) return;
 
-        // Remove previous selection
+        // Remove selection from previous
         if (this.selectedNumber !== null) {
-            document
-                .querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
-                .forEach(el => el.classList.remove('selected'));
+            const prev = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
+            prev.forEach(el => el.classList.remove('selected'));
         }
 
         this.selectedNumber = num;
 
-        // Highlight new selection
-        document
-            .querySelectorAll(`.letter-stack[data-number="${num}"]`)
-            .forEach(el => el.classList.add('selected'));
+        // Add selection to new
+        const current = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
+        current.forEach(el => el.classList.add('selected'));
 
-        // Focus editable input without causing scroll jump on mobile
+        // Focus editable input (NO scroll jump)
         const input = document.getElementById('hidden-input');
-        try {
-            input.value = '';
-            input.focus({ preventScroll: true });
-        } catch (e) {
-            // Older browsers may not support the option
-            input.value = '';
-            input.focus();
-        }
+        input.focus();
     }
 
 
@@ -419,70 +410,22 @@ class CryptoGame {
         // Listen for typing into the hidden input (for mobile)
         const hiddenInput = document.getElementById('hidden-input');
 
-        // Composition events for IME (important on some Android keyboards)
-        hiddenInput.addEventListener('compositionstart', () => {
-            this._isComposing = true;
-        });
-        hiddenInput.addEventListener('compositionend', (ev) => {
-            this._isComposing = false;
-            // Process the composed text
-            if (!this.selectedNumber) {
-                hiddenInput.value = '';
-                return;
-            }
-            const val = ev.data || hiddenInput.value || '';
-            if (!val) return;
-            const ch = val[0];
-            if (/^[a-zA-Z]$/.test(ch)) {
-                this.handleKeyInput({ key: ch.toUpperCase() });
-            }
-            hiddenInput.value = '';
-            try { hiddenInput.focus({ preventScroll: true }); } catch (e) { hiddenInput.focus(); }
-        });
+        hiddenInput.addEventListener('beforeinput', (e) => {
+            if (!this.selectedNumber) return;
 
-        // Use `input` to read characters (works with many virtual keyboards).
-        hiddenInput.addEventListener('input', (e) => {
-            if (this._isComposing) return; // ignore intermediate composition events
-
-            if (!this.selectedNumber) {
-                hiddenInput.value = '';
-                return;
-            }
-
-            const val = hiddenInput.value || '';
-            if (!val) return;
-
-            // Take only first character (keyboard may compose multiple)
-            const ch = val[0];
-            if (/^[a-zA-Z]$/.test(ch)) {
-                this.handleKeyInput({ key: ch.toUpperCase() });
-            }
-
-            // Clear value so next input is fresh and refocus to keep keyboard open
-            hiddenInput.value = '';
-            try { hiddenInput.focus({ preventScroll: true }); } catch (err) { hiddenInput.focus(); }
-        });
-
-        // Handle Backspace/Delete from virtual or hardware keyboards
-        hiddenInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' || e.key === 'Delete') {
+            // Handle delete
+            if (e.inputType === 'deleteContentBackward') {
                 this.handleKeyInput({ key: 'Backspace' });
                 e.preventDefault();
-                // Keep focus after backspace
-                try { hiddenInput.focus({ preventScroll: true }); } catch (err) { hiddenInput.focus(); }
+                return;
+            }
+
+            // Handle letter input
+            if (e.data && /^[a-zA-Z]$/.test(e.data)) {
+                this.handleKeyInput({ key: e.data.toUpperCase() });
+                e.preventDefault();
             }
         });
-
-        // If user touches anywhere while a number is selected, keep the input focused
-        document.addEventListener('touchend', (ev) => {
-            if (this.selectedNumber) {
-                try {
-                    hiddenInput.focus({ preventScroll: true });
-                } catch (err) {
-                    hiddenInput.focus();
-                }
-            }
-        }, { passive: true });
 
     }
 
