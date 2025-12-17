@@ -141,9 +141,9 @@
             </div>
         </main>
 
-        <!-- Hidden Input for mobile keyboard trigger -->
-        <input type="text" id="hidden-input" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off"
-            style="opacity: 0; position: fixed; top: 0; left: 0; height: 1px; width: 1px; pointer-events: none; z-index: -1;">
+            <!-- Hidden Input for mobile keyboard trigger. Positioned near bottom so focusing doesn't jump. -->
+            <input type="text" id="hidden-input" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off"
+                style="opacity: 0; position: fixed; bottom: 6px; left: 6px; height: 1px; width: 1px; pointer-events: auto; z-index: 10000; caret-color: transparent;">
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>

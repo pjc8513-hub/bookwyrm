@@ -274,9 +274,16 @@ class CryptoGame {
             .querySelectorAll(`.letter-stack[data-number="${num}"]`)
             .forEach(el => el.classList.add('selected'));
 
-        // Focus editable input (NO scroll jump)
+        // Focus editable input without causing scroll jump on mobile
         const input = document.getElementById('hidden-input');
-        input.focus();
+        try {
+            input.value = '';
+            input.focus({ preventScroll: true });
+        } catch (e) {
+            // Older browsers may not support the option
+            input.value = '';
+            input.focus();
+        }
     }
 
 
@@ -409,22 +416,44 @@ class CryptoGame {
         // Listen for typing into the hidden input (for mobile)
         const hiddenInput = document.getElementById('hidden-input');
 
-        hiddenInput.addEventListener('beforeinput', (e) => {
-            if (!this.selectedNumber) return;
-
-            // Handle delete
-            if (e.inputType === 'deleteContentBackward') {
-                this.handleKeyInput({ key: 'Backspace' });
-                e.preventDefault();
+        // Use `input` to read characters (works with Android virtual keyboards).
+        hiddenInput.addEventListener('input', (e) => {
+            if (!this.selectedNumber) {
+                hiddenInput.value = '';
                 return;
             }
 
-            // Handle letter input
-            if (e.data && /^[a-zA-Z]$/.test(e.data)) {
-                this.handleKeyInput({ key: e.data.toUpperCase() });
+            const val = hiddenInput.value || '';
+            if (!val) return;
+
+            // Take only first character (keyboard may compose)
+            const ch = val[0];
+            if (/^[a-zA-Z]$/.test(ch)) {
+                this.handleKeyInput({ key: ch.toUpperCase() });
+            }
+
+            // Clear value so next input is fresh
+            hiddenInput.value = '';
+        });
+
+        // Handle Backspace/Delete from virtual or hardware keyboards
+        hiddenInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                this.handleKeyInput({ key: 'Backspace' });
                 e.preventDefault();
             }
         });
+
+        // If user touches anywhere while a number is selected, keep the input focused
+        document.addEventListener('touchend', (ev) => {
+            if (this.selectedNumber) {
+                try {
+                    hiddenInput.focus({ preventScroll: true });
+                } catch (err) {
+                    hiddenInput.focus();
+                }
+            }
+        }, { passive: true });
 
     }
 
