@@ -274,7 +274,7 @@ selectNumber(num, targetEle = null) {
 
     // Setup hidden input
     const input = document.getElementById('hidden-input');
-    input.style.position = 'absolute';
+    input.style.position = 'fixed';
     input.style.top = '-1000px';
     input.style.left = '-1000px';
     input.value = ''; // Clear previous input
