@@ -188,27 +188,14 @@ class CryptoGame {
 
                             stack.onclick = (e) => {
                                 e.stopPropagation();
-                                this.selectNumber(num);
+                                this.selectNumber(num, e.currentTarget);
                             };
 
                             const slot = document.createElement('div');
                             slot.classList.add('letter-slot');
 
                             // Determine what to show
-                            if (this.revealedNumbers.has(num)) {
-                                slot.textContent = this.reverseCipherMap[num]; // The correct letter
-                                slot.classList.add('revealed');
-                            } else if (this.userGuesses[num]) {
-                                slot.textContent = this.userGuesses[num];
-                                // Check correctness immediately
-                                if (this.userGuesses[num] === this.reverseCipherMap[num]) {
-                                    slot.classList.add('user-guess');
-                                } else {
-                                    slot.classList.add('incorrect-guess');
-                                }
-                            } else {
-                                slot.innerHTML = '&nbsp;';
-                            }
+                            this.updateStackVisuals(stack, num, slot);
 
                             const numberDiv = document.createElement('div');
                             numberDiv.classList.add('cipher-number');
@@ -242,13 +229,59 @@ class CryptoGame {
         });
     }
 
-    selectNumber(num) {
-        if (this.documentSolved) return;
-        this.selectedNumber = num;
-        this.render(); // Highlights selection
+    updateStackVisuals(stackEle, num, slotEle) {
+        if (this.revealedNumbers.has(num)) {
+            slotEle.textContent = this.reverseCipherMap[num];
+            slotEle.classList.add('revealed');
+            slotEle.classList.remove('user-guess', 'incorrect-guess');
+        } else if (this.userGuesses[num]) {
+            slotEle.textContent = this.userGuesses[num];
+            slotEle.classList.remove('revealed');
 
-        // Trigger mobile keyboard if needed
+            if (this.userGuesses[num] === this.reverseCipherMap[num]) {
+                slotEle.classList.add('user-guess');
+                slotEle.classList.remove('incorrect-guess');
+            } else {
+                slotEle.classList.add('incorrect-guess');
+                slotEle.classList.remove('user-guess');
+            }
+        } else {
+            slotEle.innerHTML = '&nbsp;';
+            slotEle.classList.remove('revealed', 'user-guess', 'incorrect-guess');
+        }
+
+        if (num === this.selectedNumber) {
+            stackEle.classList.add('selected');
+        } else {
+            stackEle.classList.remove('selected');
+        }
+    }
+
+    selectNumber(num, targetEle = null) {
+        if (this.documentSolved) return;
+
+        // Remove selection from previous
+        if (this.selectedNumber !== null) {
+            const prev = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
+            prev.forEach(el => el.classList.remove('selected'));
+        }
+
+        this.selectedNumber = num;
+
+        // Add selection to new
+        const current = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
+        current.forEach(el => el.classList.add('selected'));
+
+        // Move hidden input to the target element's position to prevent scrolling
         const input = document.getElementById('hidden-input');
+        if (targetEle) {
+            const rect = targetEle.getBoundingClientRect();
+            // Position absolute within the document
+            input.style.top = (window.scrollY + rect.top) + 'px';
+            input.style.left = (window.scrollX + rect.left) + 'px';
+        }
+
+        // Focus with preventScroll just in case
         input.focus({ preventScroll: true });
     }
 
@@ -260,18 +293,26 @@ class CryptoGame {
         if (e.ctrlKey || e.altKey || e.metaKey) return;
 
         const key = e.key.toUpperCase();
+        let changed = false;
 
         if (e.key === 'Backspace' || e.key === 'Delete') {
-            delete this.userGuesses[this.selectedNumber];
-            this.checkForCompletion();
-            this.render();
-            return;
+            if (this.userGuesses[this.selectedNumber]) {
+                delete this.userGuesses[this.selectedNumber];
+                changed = true;
+            }
+        } else if (/[A-Z]/.test(key) && key.length === 1) {
+            this.userGuesses[this.selectedNumber] = key;
+            changed = true;
         }
 
-        if (/[A-Z]/.test(key) && key.length === 1) {
-            this.userGuesses[this.selectedNumber] = key;
+        if (changed) {
+            // Update visuals only for this number
+            const stacks = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
+            stacks.forEach(stack => {
+                const slot = stack.querySelector('.letter-slot');
+                this.updateStackVisuals(stack, this.selectedNumber, slot);
+            });
             this.checkForCompletion();
-            this.render();
         }
     }
 
