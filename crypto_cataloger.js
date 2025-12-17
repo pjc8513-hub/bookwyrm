@@ -257,47 +257,28 @@ class CryptoGame {
         }
     }
 
-    selectNumber(num, targetEle = null) {
+    selectNumber(num) {
         if (this.documentSolved) return;
 
-        // Remove selection from previous
+        // Remove previous selection
         if (this.selectedNumber !== null) {
-            const prev = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
-            prev.forEach(el => el.classList.remove('selected'));
+            document
+                .querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
+                .forEach(el => el.classList.remove('selected'));
         }
 
         this.selectedNumber = num;
 
-        // Add selection to new
-        const current = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
-        current.forEach(el => el.classList.add('selected'));
+        // Highlight new selection
+        document
+            .querySelectorAll(`.letter-stack[data-number="${num}"]`)
+            .forEach(el => el.classList.add('selected'));
 
-        // Capture scroll position before any changes
-        const scrollY = window.scrollY || window.pageYOffset;
-        const scrollX = window.scrollX || window.pageXOffset;
-
-        // Lock scroll temporarily
-        const restoreScroll = () => {
-            window.scrollTo(scrollX, scrollY);
-        };
-
-        // Move hidden input to current scroll position to prevent scrolling
+        // Focus editable input (NO scroll jump)
         const input = document.getElementById('hidden-input');
-        input.style.position = 'fixed';
-        input.style.top = '0px';
-        input.style.left = '0px';
-
-        // Use setTimeout to handle async scroll behavior
-        requestAnimationFrame(() => {
-            input.focus({ preventScroll: true });
-            restoreScroll();
-
-            // Double-check after a short delay for stubborn browsers
-            setTimeout(restoreScroll, 0);
-            setTimeout(restoreScroll, 10);
-            setTimeout(restoreScroll, 50);
-        });
+        input.focus();
     }
+
 
     handleKeyInput(e) {
         if (this.documentSolved) return;
@@ -426,16 +407,25 @@ class CryptoGame {
         });
 
         // Listen for typing into the hidden input (for mobile)
-        document.getElementById('hidden-input').addEventListener('input', (e) => {
-            const val = e.target.value;
-            if (val) {
-                const lastChar = val.slice(-1).toUpperCase();
-                if (/[A-Z]/.test(lastChar)) {
-                    this.handleKeyInput({ key: lastChar });
-                }
-                e.target.value = ''; // Reset
+        const hiddenInput = document.getElementById('hidden-input');
+
+        hiddenInput.addEventListener('beforeinput', (e) => {
+            if (!this.selectedNumber) return;
+
+            // Handle delete
+            if (e.inputType === 'deleteContentBackward') {
+                this.handleKeyInput({ key: 'Backspace' });
+                e.preventDefault();
+                return;
+            }
+
+            // Handle letter input
+            if (e.data && /^[a-zA-Z]$/.test(e.data)) {
+                this.handleKeyInput({ key: e.data.toUpperCase() });
+                e.preventDefault();
             }
         });
+
     }
 
     updateMessage(msg) {
