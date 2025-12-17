@@ -375,3 +375,13 @@ header {
 .btn-title-guess:hover {
     background-color: #2980b9;
 }
+
+#hidden-input {
+  position: fixed;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 1px;
+  width: 1px;
+  pointer-events: none;
+}
