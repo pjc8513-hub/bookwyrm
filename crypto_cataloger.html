@@ -141,9 +141,8 @@
             </div>
         </main>
 
-            <!-- Hidden Input for mobile keyboard trigger. Positioned near bottom so focusing doesn't jump. -->
-            <input type="text" id="hidden-input" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off"
-                style="opacity: 0; position: fixed; bottom: 6px; left: 6px; height: 1px; width: 1px; pointer-events: auto; z-index: 10000; caret-color: transparent;">
+            <!-- On-screen virtual keyboard for mobile (replaces hidden input) -->
+            <div id="keyboard-area" class="hidden" aria-hidden="true"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>

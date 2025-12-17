@@ -272,9 +272,11 @@ selectNumber(num, targetEle = null) {
   document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
     .forEach(el => el.classList.add('selected'));
 
-  // Focus without scroll
-  const input = document.getElementById('hidden-input');
-  input.focus({ preventScroll: true });
+    // On touch devices, show the on-screen keyboard instead of focusing an input
+    if (this.isTouchDevice && this.keyboardArea) {
+        this.keyboardArea.classList.remove('hidden');
+        this.keyboardArea.setAttribute('aria-hidden', 'false');
+    }
 }
 
 
@@ -404,49 +406,73 @@ selectNumber(num, targetEle = null) {
             this.render();
             this.updateMessage("Solution Revealed.");
         });
+        // Create an on-screen keyboard for mobile/touch devices to avoid focus-induced scrolling
+        const keyboardArea = document.getElementById('keyboard-area');
+        this.keyboardArea = keyboardArea;
+        this.isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
-        // Listen for typing into the hidden input (for mobile)
-        const hiddenInput = document.getElementById('hidden-input');
+        if (keyboardArea) {
+            keyboardArea.innerHTML = '';
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            const fragment = document.createDocumentFragment();
 
-        // Primary: beforeinput (handles composition-aware input on many platforms)
-        hiddenInput.addEventListener('beforeinput', (e) => {
-            if (!this.selectedNumber) return;
+            const row = document.createElement('div');
+            row.className = 'keyboard-rows';
 
-            // Handle delete/backspace via inputType
-            if (e.inputType === 'deleteContentBackward') {
+            letters.forEach(ch => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'kbtn';
+                btn.textContent = ch;
+                btn.addEventListener('click', () => {
+                    if (!this.selectedNumber || this.documentSolved) return;
+                    this.handleKeyInput({ key: ch });
+                });
+                row.appendChild(btn);
+            });
+
+            const controls = document.createElement('div');
+            controls.className = 'keyboard-controls';
+            const back = document.createElement('button');
+            back.type = 'button';
+            back.className = 'kbtn special';
+            back.textContent = '⌫';
+            back.addEventListener('click', () => {
+                if (!this.selectedNumber || this.documentSolved) return;
                 this.handleKeyInput({ key: 'Backspace' });
-                e.preventDefault();
-                hiddenInput.value = '';
-                return;
-            }
+            });
 
-            // Handle single-letter input when available
-            if (e.data && /^[a-zA-Z]$/.test(e.data)) {
-                this.handleKeyInput({ key: e.data.toUpperCase() });
-                e.preventDefault();
-                hiddenInput.value = '';
-            }
-        });
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'kbtn special';
+            close.textContent = 'Close';
+            close.addEventListener('click', () => {
+                keyboardArea.classList.add('hidden');
+                keyboardArea.setAttribute('aria-hidden', 'true');
+            });
 
-        // Fallback: input event (covers some Android keyboards that don't reliably fire beforeinput)
-        hiddenInput.addEventListener('input', (e) => {
-            if (!this.selectedNumber) return;
-            const val = e.target.value || '';
-            if (!val) return;
-            const ch = val.slice(-1);
-            if (/^[a-zA-Z]$/.test(ch)) {
-                this.handleKeyInput({ key: ch.toUpperCase() });
-            }
-            // Always clear the field so next input will be reported
-            e.target.value = '';
-        });
+            controls.appendChild(back);
+            controls.appendChild(close);
 
-        // Capture Backspace on keydown as an additional fallback
-        hiddenInput.addEventListener('keydown', (e) => {
-            if (!this.selectedNumber) return;
-            if (e.key === 'Backspace') {
-                this.handleKeyInput({ key: 'Backspace' });
-                e.preventDefault();
+            fragment.appendChild(row);
+            fragment.appendChild(controls);
+            keyboardArea.appendChild(fragment);
+        }
+
+        // Hide keyboard when tapping outside stacks or keyboard
+        document.addEventListener('click', (e) => {
+            const clickedStack = e.target.closest && e.target.closest('.letter-stack');
+            const clickedKeyboard = e.target.closest && e.target.closest('#keyboard-area');
+            if (!clickedStack && !clickedKeyboard) {
+                if (this.selectedNumber !== null) {
+                    this.selectedNumber = null;
+                    document.querySelectorAll('.letter-stack.selected')
+                        .forEach(el => el.classList.remove('selected'));
+                }
+                if (this.keyboardArea && this.isTouchDevice) {
+                    this.keyboardArea.classList.add('hidden');
+                    this.keyboardArea.setAttribute('aria-hidden', 'true');
+                }
             }
         });
 
@@ -462,15 +488,4 @@ selectNumber(num, targetEle = null) {
 document.addEventListener('DOMContentLoaded', () => {
     const game = new CryptoGame();
     game.init();
-});
-
-document.getElementById('hidden-input').addEventListener('touchstart', (e) => {
-  e.preventDefault();
-});
-
-document.addEventListener('focusin', (e) => {
-  if (e.target.tagName === 'INPUT') {
-    e.preventDefault();
-    // or use window.scrollTo() to scroll to a specific position
-  }
 });
