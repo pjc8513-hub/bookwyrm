@@ -98,17 +98,21 @@ Catcher in the rye, the
 Christine 
 Christmas Carol, the
 Clash of kings, a
+Conclave
 Crime and punishment
 Crossroads of twilight 
 Cujo
 Dance, dance, dance
 Dance with dragons, a
+Da Vinci code, the
+David Copperfield
 Doctor sleep 
 Dracula 
 Dragon reborn, the 
 Drawing of the three
 Dream of spring, a
 Dune
+Dungeon crawler Carl
 Empire of the sun
 Eye of the world, the
 Farewell to arms
@@ -122,9 +126,12 @@ French exit
 French Lieutenant's Woman, the
 Fried green tomatoes at the Whistle Stop Cafe
 Game of thrones, a
+Girl in the spider's web, the
 Girl on the line
 Girl on the train, the
 Girl with the dragon tattoo, the
+Girl with a pearl earring
+Gone before goodbye
 Gone girl
 Grapes of wrath, the
 Great hunt, the
@@ -132,6 +139,7 @@ Great expectations
 Great Gatsby, the
 Green mile, the
 Gunslinger, the
+Gulliver's travels
 Hannibal 
 Heart of darkness
 Hearts in Atlanta 
@@ -157,6 +165,7 @@ Misery
 Moby Dick
 Neuromancer 
 Night
+No longer human
 Norwegian wood
 Notes from the underground
 Of mice and men
@@ -168,6 +177,7 @@ Path of daggers, the
 Pelican brief, the
 Pet sematary
 Picture of Dorian Gray, the
+Portrait of the artist as a young man, a
 Pride and prejudice
 Return of the king
 Red dragon
@@ -202,4 +212,9 @@ Where the red fern grows
 Where the wild things are
 World war Z
 Wuthering heights 
-Xanadu
+Year of magical thinking, the
+Zane and the hurricane
+Zeitoun
+Zen and the Art of Motorcycle Maintenance
+Zero history
+Zookeeper's wife, the
