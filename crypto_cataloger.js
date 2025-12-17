@@ -467,3 +467,10 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('hidden-input').addEventListener('touchstart', (e) => {
   e.preventDefault();
 });
+
+document.addEventListener('focusin', (e) => {
+  if (e.target.tagName === 'INPUT') {
+    e.preventDefault();
+    // or use window.scrollTo() to scroll to a specific position
+  }
+});
