@@ -30,9 +30,6 @@ class CryptoGame {
             '264': ['c'],
             'default': ['a']
         };
-
-        // Track IME composition state for mobile keyboards
-        this._isComposing = false;
     }
 
     async init() {
@@ -260,20 +257,22 @@ class CryptoGame {
         }
     }
 
-    selectNumber(num, targetEle = null) {
+    selectNumber(num) {
         if (this.documentSolved) return;
 
-        // Remove selection from previous
+        // Remove previous selection
         if (this.selectedNumber !== null) {
-            const prev = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
-            prev.forEach(el => el.classList.remove('selected'));
+            document
+                .querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
+                .forEach(el => el.classList.remove('selected'));
         }
 
         this.selectedNumber = num;
 
-        // Add selection to new
-        const current = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
-        current.forEach(el => el.classList.add('selected'));
+        // Highlight new selection
+        document
+            .querySelectorAll(`.letter-stack[data-number="${num}"]`)
+            .forEach(el => el.classList.add('selected'));
 
         // Focus editable input (NO scroll jump)
         const input = document.getElementById('hidden-input');
