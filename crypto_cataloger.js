@@ -257,37 +257,39 @@ class CryptoGame {
         }
     }
 
-    selectNumber(num, targetEle = null) {
-        if (this.documentSolved) return;
+selectNumber(num, targetEle = null) {
+    if (this.documentSolved) return;
 
-        // Remove selection from previous
-        if (this.selectedNumber !== null) {
-            const prev = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
-            prev.forEach(el => el.classList.remove('selected'));
-        }
-
-        this.selectedNumber = num;
-
-        // Add selection to new
-        const current = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
-        current.forEach(el => el.classList.add('selected'));
-
-        // Move hidden input to current scroll position to prevent scrolling
-        const input = document.getElementById('hidden-input');
-        const scrollY = window.scrollY || window.pageYOffset;
-        const scrollX = window.scrollX || window.pageXOffset;
-
-        // Position the input at the current viewport position
-        input.style.position = 'fixed';
-        input.style.top = '0px';
-        input.style.left = '0px';
-
-        // Focus with preventScroll
-        input.focus({ preventScroll: true });
-
-        // Restore scroll position in case it moved
-        window.scrollTo(scrollX, scrollY);
+    // Deselect previous
+    if (this.selectedNumber !== null) {
+        document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
+            .forEach(el => el.classList.remove('selected'));
     }
+
+    this.selectedNumber = num;
+
+    // Select new
+    document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
+        .forEach(el => el.classList.add('selected'));
+
+    // Setup hidden input
+    const input = document.getElementById('hidden-input');
+    input.style.position = 'absolute';
+    input.style.top = '-1000px';
+    input.style.left = '-1000px';
+    input.value = ''; // Clear previous input
+
+    // Focus without scroll
+    input.focus({ preventScroll: true });
+
+    // Delay scroll restoration
+    const scrollY = window.scrollY || window.pageYOffset;
+    const scrollX = window.scrollX || window.pageXOffset;
+    setTimeout(() => {
+        window.scrollTo(scrollX, scrollY);
+    }, 100);
+}
+
 
 
     handleKeyInput(e) {
