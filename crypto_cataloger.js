@@ -30,6 +30,9 @@ class CryptoGame {
             '264': ['c'],
             'default': ['a']
         };
+
+        // Track IME composition state for mobile keyboards
+        this._isComposing = false;
     }
 
     async init() {
@@ -416,8 +419,31 @@ class CryptoGame {
         // Listen for typing into the hidden input (for mobile)
         const hiddenInput = document.getElementById('hidden-input');
 
-        // Use `input` to read characters (works with Android virtual keyboards).
+        // Composition events for IME (important on some Android keyboards)
+        hiddenInput.addEventListener('compositionstart', () => {
+            this._isComposing = true;
+        });
+        hiddenInput.addEventListener('compositionend', (ev) => {
+            this._isComposing = false;
+            // Process the composed text
+            if (!this.selectedNumber) {
+                hiddenInput.value = '';
+                return;
+            }
+            const val = ev.data || hiddenInput.value || '';
+            if (!val) return;
+            const ch = val[0];
+            if (/^[a-zA-Z]$/.test(ch)) {
+                this.handleKeyInput({ key: ch.toUpperCase() });
+            }
+            hiddenInput.value = '';
+            try { hiddenInput.focus({ preventScroll: true }); } catch (e) { hiddenInput.focus(); }
+        });
+
+        // Use `input` to read characters (works with many virtual keyboards).
         hiddenInput.addEventListener('input', (e) => {
+            if (this._isComposing) return; // ignore intermediate composition events
+
             if (!this.selectedNumber) {
                 hiddenInput.value = '';
                 return;
@@ -426,14 +452,15 @@ class CryptoGame {
             const val = hiddenInput.value || '';
             if (!val) return;
 
-            // Take only first character (keyboard may compose)
+            // Take only first character (keyboard may compose multiple)
             const ch = val[0];
             if (/^[a-zA-Z]$/.test(ch)) {
                 this.handleKeyInput({ key: ch.toUpperCase() });
             }
 
-            // Clear value so next input is fresh
+            // Clear value so next input is fresh and refocus to keep keyboard open
             hiddenInput.value = '';
+            try { hiddenInput.focus({ preventScroll: true }); } catch (err) { hiddenInput.focus(); }
         });
 
         // Handle Backspace/Delete from virtual or hardware keyboards
@@ -441,6 +468,8 @@ class CryptoGame {
             if (e.key === 'Backspace' || e.key === 'Delete') {
                 this.handleKeyInput({ key: 'Backspace' });
                 e.preventDefault();
+                // Keep focus after backspace
+                try { hiddenInput.focus({ preventScroll: true }); } catch (err) { hiddenInput.focus(); }
             }
         });
 
