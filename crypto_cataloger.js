@@ -463,3 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const game = new CryptoGame();
     game.init();
 });
+
+document.getElementById('hidden-input').addEventListener('touchstart', (e) => {
+  e.preventDefault();
+});
