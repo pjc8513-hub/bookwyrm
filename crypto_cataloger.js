@@ -272,21 +272,31 @@ class CryptoGame {
         const current = document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`);
         current.forEach(el => el.classList.add('selected'));
 
-        // Move hidden input to current scroll position to prevent scrolling
-        const input = document.getElementById('hidden-input');
+        // Capture scroll position before any changes
         const scrollY = window.scrollY || window.pageYOffset;
         const scrollX = window.scrollX || window.pageXOffset;
 
-        // Position the input at the current viewport position
+        // Lock scroll temporarily
+        const restoreScroll = () => {
+            window.scrollTo(scrollX, scrollY);
+        };
+
+        // Move hidden input to current scroll position to prevent scrolling
+        const input = document.getElementById('hidden-input');
         input.style.position = 'fixed';
         input.style.top = '0px';
         input.style.left = '0px';
 
-        // Focus with preventScroll
-        input.focus({ preventScroll: true });
+        // Use setTimeout to handle async scroll behavior
+        requestAnimationFrame(() => {
+            input.focus({ preventScroll: true });
+            restoreScroll();
 
-        // Restore scroll position in case it moved
-        window.scrollTo(scrollX, scrollY);
+            // Double-check after a short delay for stubborn browsers
+            setTimeout(restoreScroll, 0);
+            setTimeout(restoreScroll, 10);
+            setTimeout(restoreScroll, 50);
+        });
     }
 
     handleKeyInput(e) {
