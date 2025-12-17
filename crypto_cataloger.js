@@ -249,7 +249,7 @@ class CryptoGame {
 
         // Trigger mobile keyboard if needed
         const input = document.getElementById('hidden-input');
-        input.focus();
+        input.focus({ preventScroll: true });
     }
 
     handleKeyInput(e) {
