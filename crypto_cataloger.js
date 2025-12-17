@@ -258,36 +258,23 @@ class CryptoGame {
     }
 
 selectNumber(num, targetEle = null) {
-    if (this.documentSolved) return;
+  if (this.documentSolved) return;
 
-    // Deselect previous
-    if (this.selectedNumber !== null) {
-        document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
-            .forEach(el => el.classList.remove('selected'));
-    }
-
-    this.selectedNumber = num;
-
-    // Select new
+  // Deselect previous
+  if (this.selectedNumber !== null) {
     document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
-        .forEach(el => el.classList.add('selected'));
+      .forEach(el => el.classList.remove('selected'));
+  }
 
-    // Setup hidden input
-    const input = document.getElementById('hidden-input');
-    input.style.position = 'fixed';
-    input.style.top = '-1000px';
-    input.style.left = '-1000px';
-    input.value = ''; // Clear previous input
+  this.selectedNumber = num;
 
-    // Focus without scroll
-    input.focus({ preventScroll: true });
+  // Select new
+  document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
+    .forEach(el => el.classList.add('selected'));
 
-    // Delay scroll restoration
-    const scrollY = window.scrollY || window.pageYOffset;
-    const scrollX = window.scrollX || window.pageXOffset;
-    setTimeout(() => {
-        window.scrollTo(scrollX, scrollY);
-    }, 100);
+  // Focus without scroll
+  const input = document.getElementById('hidden-input');
+  input.focus({ preventScroll: true });
 }
 
 
