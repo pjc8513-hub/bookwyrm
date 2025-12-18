@@ -63,6 +63,7 @@ class CryptoGame {
         this.userGuesses = {};
         this.revealedNumbers = new Set();
         this.selectedNumber = null;
+        this.dates = [];
         this.documentSolved = false;
 
         this.generateCipher();
@@ -257,27 +258,27 @@ class CryptoGame {
         }
     }
 
-selectNumber(num, targetEle = null) {
-  if (this.documentSolved) return;
+    selectNumber(num, targetEle = null) {
+        if (this.documentSolved) return;
 
-  // Deselect previous
-  if (this.selectedNumber !== null) {
-    document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
-      .forEach(el => el.classList.remove('selected'));
-  }
+        // Deselect previous
+        if (this.selectedNumber !== null) {
+            document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
+                .forEach(el => el.classList.remove('selected'));
+        }
 
-  this.selectedNumber = num;
+        this.selectedNumber = num;
 
-  // Select new
-  document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
-    .forEach(el => el.classList.add('selected'));
+        // Select new
+        document.querySelectorAll(`.letter-stack[data-number="${this.selectedNumber}"]`)
+            .forEach(el => el.classList.add('selected'));
 
-    // On touch devices, show the on-screen keyboard instead of focusing an input
-    if (this.isTouchDevice && this.keyboardArea) {
-        this.keyboardArea.classList.remove('hidden');
-        this.keyboardArea.setAttribute('aria-hidden', 'false');
+        // On touch devices, show the on-screen keyboard instead of focusing an input
+        if (this.isTouchDevice && this.keyboardArea) {
+            this.keyboardArea.classList.remove('hidden');
+            this.keyboardArea.setAttribute('aria-hidden', 'false');
+        }
     }
-}
 
 
 
@@ -481,7 +482,7 @@ selectNumber(num, targetEle = null) {
     updateMessage(msg) {
         document.getElementById('message').textContent = msg;
     }
-    
+
 }
 
 

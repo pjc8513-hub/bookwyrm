@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 class Game {
     constructor() {
+        this.dates = [];
         this.records = [];
         this.currentRecord = null;
         this.guessedLetters = new Set();
@@ -66,16 +67,59 @@ class Game {
         }
     }
 
-    startNewRound() {
-        if (this.records.length === 0) return;
+    async loadDatesCSV() {
+        try {
+            const response = await fetch('data/dates.csv');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch dates.csv: ${response.status}`);
+            }
+            const text = await response.text();
+            const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+            this.dates = lines.map(line => {
+                const [recordNumber, title, date, puzzle] = line.split(',').map(s => s.trim());
+                return { recordNumber, title, date, puzzle };
+            });
+            console.log(`Loaded ${this.dates.length} date entries.`);
+        } catch (e) {
+            console.error('Error loading dates.csv', e);
+            this.dates = [];
+        }
+    }
 
-        const randomIndex = Math.floor(Math.random() * this.records.length);
-        this.currentRecord = this.records[randomIndex];
+    async startNewRound() {
+        if (this.records.length === 0) return;
+        // Ensure dates are loaded
+        if (!this.dates) await this.loadDatesCSV();
+        const today = new Date().toISOString().slice(0, 10);
+        // Find entry for today and puzzle type 'hangman'
+        const entry = this.dates.find(e => e.date === today && e.puzzle === 'hangman');
+        let recordNumber = null;
+        if (entry && entry.recordNumber) {
+            recordNumber = entry.recordNumber;
+        } else {
+            console.warn('No matching date entry for today; falling back to random record');
+        }
+        if (recordNumber) {
+            // Find record with matching 001 field
+            const match = this.records.find(r => {
+                const field001 = r.fields.find(f => f.tag === '001');
+                return field001 && field001.text === recordNumber;
+            });
+            if (match) {
+                this.currentRecord = match;
+            } else {
+                console.error(`Record number ${recordNumber} not found in MARC data; using random`);
+                const randomIndex = Math.floor(Math.random() * this.records.length);
+                this.currentRecord = this.records[randomIndex];
+            }
+        } else {
+            const randomIndex = Math.floor(Math.random() * this.records.length);
+            this.currentRecord = this.records[randomIndex];
+        }
         this.guessedLetters.clear();
         this.totalGuesses = 0;
         this.won = false;
         this.lost = false;
-
         this.updateUI();
     }
 
