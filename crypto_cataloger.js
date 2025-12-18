@@ -30,12 +30,18 @@ class CryptoGame {
             '264': ['c'],
             'default': ['a']
         };
+        this.dates = [];
+        this.totalAttempts = 0;
+        this.correctAttempts = 0;
+        this.stats = this.loadStats();
     }
 
     async init() {
         await this.loadData();
         this.setupControls();
+        this.setupStatsModal();
         this.startNewRound();
+        this.startCountdown();
 
         // Global keyboard listener
         document.addEventListener('keydown', (e) => this.handleKeyInput(e));
@@ -54,22 +60,82 @@ class CryptoGame {
         }
     }
 
-    startNewRound() {
+    async loadDatesCSV() {
+        try {
+            const response = await fetch('data/dates.csv');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch dates.csv: ${response.status}`);
+            }
+            const text = await response.text();
+            const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+            this.dates = lines.map(line => {
+                const [recordNumber, title, date, puzzle] = line.split(',').map(s => s.trim());
+                return { recordNumber, title, date, puzzle };
+            });
+            console.log(`Loaded ${this.dates.length} date entries.`);
+        } catch (e) {
+            console.error('Error loading dates.csv', e);
+            this.dates = [];
+        }
+    }
+
+    async startNewRound() {
         if (this.records.length === 0) return;
 
-        // Reset state
-        const randomIndex = Math.floor(Math.random() * this.records.length);
-        this.currentRecord = this.records[randomIndex];
-        this.userGuesses = {};
-        this.revealedNumbers = new Set();
-        this.selectedNumber = null;
-        this.dates = [];
-        this.documentSolved = false;
+        // Ensure dates are loaded
+        if (this.dates.length === 0) {
+            await this.loadDatesCSV();
+        }
+
+        // Use local date 
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`;
+
+        console.log(`Checking for cypher puzzle on: ${today}`);
+
+        const entry = this.dates.find(e => e.date === today && e.puzzle === 'cypher');
+        let recordNumber = null;
+        if (entry && entry.recordNumber) {
+            recordNumber = entry.recordNumber;
+            console.log(`Found daily cypher for ${today}: Record ${recordNumber}`);
+        } else {
+            console.warn(`No matching date entry for ${today} (cypher); falling back to random record`);
+        }
+
+        // Check already solved
+        const alreadySolved = this.stats.history[today] && this.stats.history[today].solved;
+
+        if (recordNumber) {
+            const match = this.records.find(r => {
+                const field001 = r.fields.find(f => f.tag === '001');
+                return field001 && field001.text === recordNumber;
+            });
+            if (match) {
+                this.currentRecord = match;
+            } else {
+                console.error(`Record number ${recordNumber} not found in MARC data; using random`);
+                this.currentRecord = this.records[Math.floor(Math.random() * this.records.length)];
+            }
+        } else {
+            this.currentRecord = this.records[Math.floor(Math.random() * this.records.length)];
+        }
+
+        if (alreadySolved && entry) {
+            this.documentSolved = true;
+            console.log("Today's cypher already solved!");
+        }
 
         this.generateCipher();
         this.revealHints();
         this.render();
         this.updateMessage("Click any blank and type a letter to solve.");
+
+        if (alreadySolved && entry) {
+            this.showStatsModal();
+        }
     }
 
     generateCipher() {
@@ -298,6 +364,12 @@ class CryptoGame {
                 changed = true;
             }
         } else if (/[A-Z]/.test(key) && key.length === 1) {
+            // Track attempts
+            this.totalAttempts++;
+            if (key === this.reverseCipherMap[this.selectedNumber]) {
+                this.correctAttempts++;
+            }
+
             this.userGuesses[this.selectedNumber] = key;
             changed = true;
         }
@@ -379,8 +451,9 @@ class CryptoGame {
         if (isComplete && allCorrect) {
             this.documentSolved = true;
             this.updateMessage("CONGRATULATIONS! You solved the catalog!");
-            // Reveal all (visual effect?)
-            // Add confetti? (out of scope but nice)
+            this.saveStats(true);
+            setTimeout(() => this.showStatsModal(), 1500);
+
             if (window.confetti) {
                 window.confetti({
                     particleCount: 150,
@@ -460,6 +533,8 @@ class CryptoGame {
             keyboardArea.appendChild(fragment);
         }
 
+        document.getElementById('btn-stats').onclick = () => this.showStatsModal();
+
         // Hide keyboard when tapping outside stacks or keyboard
         document.addEventListener('click', (e) => {
             const clickedStack = e.target.closest && e.target.closest('.letter-stack');
@@ -476,13 +551,132 @@ class CryptoGame {
                 }
             }
         });
+    }
 
+    // --- Stats and Persistence Logic ---
+
+    getTodayString() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    getRecord001(record) {
+        if (!record) return null;
+        const f001 = record.fields.find(f => f.tag === '001');
+        return f001 ? f001.text : null;
+    }
+
+    loadStats() {
+        const saved = localStorage.getItem('marc_cypher_stats');
+        if (saved) return JSON.parse(saved);
+        return {
+            history: {}, // date -> {solved, record, accuracy}
+            played: 0,
+            wins: 0,
+            streak: 0,
+            totalCorrect: 0,
+            totalAttempts: 0,
+            lastPlayed: null
+        };
+    }
+
+    saveStats(isWin) {
+        const today = this.getTodayString();
+        const record001 = this.getRecord001(this.currentRecord);
+
+        // Only save stats if it's the daily puzzle
+        const dailyEntry = this.dates.find(e => e.date === today && e.puzzle === 'cypher');
+        if (!dailyEntry || dailyEntry.recordNumber !== record001) return;
+
+        if (this.stats.history[today]) return; // Already saved today
+
+        const accuracy = this.totalAttempts > 0 ? Math.round((this.correctAttempts / this.totalAttempts) * 100) : 0;
+
+        this.stats.history[today] = {
+            solved: isWin,
+            accuracy: accuracy,
+            record: record001
+        };
+
+        this.stats.played++;
+        if (isWin) {
+            this.stats.wins++;
+            this.stats.totalCorrect += this.correctAttempts;
+            this.stats.totalAttempts += this.totalAttempts;
+
+            // Streak logic
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+            if (this.stats.lastPlayed === yesterdayStr) {
+                this.stats.streak++;
+            } else {
+                this.stats.streak = 1;
+            }
+            this.stats.lastPlayed = today;
+        } else {
+            this.stats.streak = 0;
+        }
+
+        localStorage.setItem('marc_cypher_stats', JSON.stringify(this.stats));
+    }
+
+    setupStatsModal() {
+        const modal = document.getElementById('stats-modal');
+        const closeBtn = modal.querySelector('.close-modal');
+        closeBtn.onclick = () => modal.classList.add('hidden');
+    }
+
+    showStatsModal() {
+        const modal = document.getElementById('stats-modal');
+
+        document.getElementById('stat-streak').textContent = this.stats.streak;
+        document.getElementById('stat-played').textContent = this.stats.played;
+
+        const overallAccuracy = this.stats.totalAttempts > 0 ? Math.round((this.stats.totalCorrect / this.stats.totalAttempts) * 100) : 0;
+        document.getElementById('stat-accuracy').textContent = overallAccuracy + '%';
+
+        const winRate = this.stats.played > 0 ? Math.round((this.stats.wins / this.stats.played) * 100) : 0;
+        document.getElementById('stat-win-rate').textContent = winRate + '%';
+
+        // History
+        const historyEl = document.getElementById('stats-history');
+        historyEl.innerHTML = '<h3>Recent History</h3>';
+        Object.keys(this.stats.history).sort().reverse().slice(0, 5).forEach(date => {
+            const entry = this.stats.history[date];
+            const div = document.createElement('div');
+            div.classList.add('history-item');
+            div.innerHTML = `<span>${date}</span><span>${entry.solved ? 'Solved ✓' : 'Failed ✗'} (${entry.accuracy}% acc)</span>`;
+            historyEl.appendChild(div);
+        });
+
+        modal.classList.remove('hidden');
+    }
+
+    startCountdown() {
+        const timerEl = document.getElementById('countdown-timer');
+        if (!timerEl) return;
+        const update = () => {
+            const now = new Date();
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+
+            const diff = tomorrow - now;
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+
+            timerEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        };
+        update();
+        setInterval(update, 1000);
     }
 
     updateMessage(msg) {
         document.getElementById('message').textContent = msg;
     }
-
 }
 
 

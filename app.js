@@ -37,6 +37,8 @@ class Game {
             '264': ['c'],
             'default': ['a']
         };
+
+        this.stats = this.loadStats();
     }
 
     async init() {
@@ -44,7 +46,9 @@ class Game {
         this.setupKeyboard();
         this.setupGameControls();
         this.setupTitleGuessModal();
+        this.setupStatsModal();
         this.startNewRound();
+        this.startCountdown();
 
         document.getElementById('next-record').addEventListener('click', () => {
             this.startNewRound();
@@ -88,17 +92,34 @@ class Game {
 
     async startNewRound() {
         if (this.records.length === 0) return;
-        // Ensure dates are loaded
-        if (!this.dates) await this.loadDatesCSV();
-        const today = new Date().toISOString().slice(0, 10);
+
+        // Ensure dates are loaded - [] is truthy, so check length
+        if (this.dates.length === 0) {
+            await this.loadDatesCSV();
+        }
+
+        // Use local date instead of UTC
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`;
+
+        console.log(`Checking for puzzle on: ${today}`);
+
         // Find entry for today and puzzle type 'hangman'
         const entry = this.dates.find(e => e.date === today && e.puzzle === 'hangman');
         let recordNumber = null;
         if (entry && entry.recordNumber) {
             recordNumber = entry.recordNumber;
+            console.log(`Found daily puzzle for ${today}: Record ${recordNumber}`);
         } else {
-            console.warn('No matching date entry for today; falling back to random record');
+            console.warn(`No matching date entry for ${today} (hangman); falling back to random record`);
         }
+
+        // Check if already solved today
+        const alreadySolved = this.stats.history[today] && this.stats.history[today].solved;
+
         if (recordNumber) {
             // Find record with matching 001 field
             const match = this.records.find(r => {
@@ -109,18 +130,25 @@ class Game {
                 this.currentRecord = match;
             } else {
                 console.error(`Record number ${recordNumber} not found in MARC data; using random`);
-                const randomIndex = Math.floor(Math.random() * this.records.length);
-                this.currentRecord = this.records[randomIndex];
+                this.currentRecord = this.records[Math.floor(Math.random() * this.records.length)];
             }
         } else {
-            const randomIndex = Math.floor(Math.random() * this.records.length);
-            this.currentRecord = this.records[randomIndex];
+            this.currentRecord = this.records[Math.floor(Math.random() * this.records.length)];
         }
         this.guessedLetters.clear();
         this.totalGuesses = 0;
         this.won = false;
         this.lost = false;
+
+        if (alreadySolved && entry) {
+            this.won = true; // Mark as won to show revealed record
+            console.log("Today's puzzle already solved!");
+        }
+
         this.updateUI();
+        if (alreadySolved && entry) {
+            this.showStatsModal();
+        }
     }
 
     setupKeyboard() {
@@ -207,6 +235,10 @@ class Game {
         this.totalGuesses++;
 
         this.checkWinCondition();
+        if (this.won) {
+            this.saveStats(true);
+            setTimeout(() => this.showStatsModal(), 1000);
+        }
         this.updateUI();
     }
 
@@ -215,29 +247,18 @@ class Game {
 
         this.totalGuesses++;
 
-        // Normalize guess and target
         const normalize = (str) => str.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-
-        // Get full title from 245
         const titleField = this.currentRecord.fields.find(f => f.tag === '245');
         let fullTitle = "";
         if (titleField && titleField.subfields) {
-            // Combine all subfields for checking? Or just $a?
-            // User said "solve for the title" and mostly refers to 245.
-            // Usually 245 $a is the main title. $b is subtitle.
-            // Let's check against $a first, or maybe $a$b?
-            // Let's stick to $a for the "guessing the title" requirement to match the "hidden" part logic
-            // which mostly emphasized $a.
-            // But let's look at checkWinCondition, it checks $a.
             const sf = titleField.subfields.find(s => s.code === 'a');
             if (sf) fullTitle = sf.data;
         }
 
         if (normalize(guess) === normalize(fullTitle)) {
-            // Correct!
-            // Reveal everything
             this.won = true;
-            // Also add all letters? Logic in updateUI handles 'won' state.
+            this.saveStats(true);
+            setTimeout(() => this.showStatsModal(), 1000);
         } else {
             alert("Incorrect guess!");
         }
@@ -276,6 +297,8 @@ class Game {
 
                 if (isFullyRevealed) {
                     this.won = true;
+                    this.saveStats(true);
+                    setTimeout(() => this.showStatsModal(), 1000);
                 }
             }
         }
@@ -409,10 +432,135 @@ class Game {
 
         if (this.won || this.lost) {
             giveUpBtn.classList.add('hidden');
-            newGameBtn.classList.remove('hidden');
+            // Only show new game if it's not today's fixed puzzle
+            const today = this.getTodayString();
+            const dailyEntry = this.dates.find(e => e.date === today && e.puzzle === 'hangman');
+            if (dailyEntry && dailyEntry.recordNumber === this.getRecord001(this.currentRecord)) {
+                newGameBtn.classList.add('hidden');
+            } else {
+                newGameBtn.classList.remove('hidden');
+            }
         } else {
             giveUpBtn.classList.remove('hidden');
             newGameBtn.classList.add('hidden');
         }
+    }
+
+    // --- Stats and Persistence Logic ---
+
+    getTodayString() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    getRecord001(record) {
+        if (!record) return null;
+        const f001 = record.fields.find(f => f.tag === '001');
+        return f001 ? f001.text : null;
+    }
+
+    loadStats() {
+        const saved = localStorage.getItem('marc_hangman_stats');
+        if (saved) return JSON.parse(saved);
+        return {
+            history: {}, // date -> {solved, guesses, record}
+            played: 0,
+            wins: 0,
+            streak: 0,
+            totalGuesses: 0,
+            lastPlayed: null
+        };
+    }
+
+    saveStats(isWin) {
+        const today = this.getTodayString();
+        const record001 = this.getRecord001(this.currentRecord);
+
+        // Only save stats if it's the daily puzzle
+        const dailyEntry = this.dates.find(e => e.date === today && e.puzzle === 'hangman');
+        if (!dailyEntry || dailyEntry.recordNumber !== record001) return;
+
+        if (this.stats.history[today]) return; // Already saved today
+
+        this.stats.history[today] = {
+            solved: isWin,
+            guesses: this.totalGuesses,
+            record: record001
+        };
+
+        this.stats.played++;
+        if (isWin) {
+            this.stats.wins++;
+            this.stats.totalGuesses += this.totalGuesses;
+
+            // Streak logic
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+            if (this.stats.lastPlayed === yesterdayStr) {
+                this.stats.streak++;
+            } else {
+                this.stats.streak = 1;
+            }
+            this.stats.lastPlayed = today;
+        } else {
+            this.stats.streak = 0;
+        }
+
+        localStorage.setItem('marc_hangman_stats', JSON.stringify(this.stats));
+    }
+
+    setupStatsModal() {
+        const modal = document.getElementById('stats-modal');
+        const closeBtn = modal.querySelector('.close-modal');
+        closeBtn.onclick = () => modal.classList.add('hidden');
+
+        document.getElementById('btn-stats').onclick = () => this.showStatsModal();
+    }
+
+    showStatsModal() {
+        const modal = document.getElementById('stats-modal');
+
+        document.getElementById('stat-streak').textContent = this.stats.streak;
+        document.getElementById('stat-played').textContent = this.stats.played;
+
+        const avg = this.stats.wins > 0 ? (this.stats.totalGuesses / this.stats.wins).toFixed(1) : 0;
+        document.getElementById('stat-avg-guesses').textContent = avg;
+
+        const winRate = this.stats.played > 0 ? Math.round((this.stats.wins / this.stats.played) * 100) : 0;
+        document.getElementById('stat-win-rate').textContent = winRate + '%';
+
+        // History
+        const historyEl = document.getElementById('stats-history');
+        historyEl.innerHTML = '<h3>Recent History</h3>';
+        Object.keys(this.stats.history).sort().reverse().slice(0, 5).forEach(date => {
+            const entry = this.stats.history[date];
+            const div = document.createElement('div');
+            div.classList.add('history-item');
+            div.innerHTML = `<span>${date}</span><span>${entry.solved ? 'Solved ✓' : 'Failed ✗'} (${entry.guesses} guesses)</span>`;
+            historyEl.appendChild(div);
+        });
+
+        modal.classList.remove('hidden');
+    }
+
+    startCountdown() {
+        const timerEl = document.getElementById('countdown-timer');
+        const update = () => {
+            const now = new Date();
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+
+            const diff = tomorrow - now;
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+
+            timerEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        };
+        update();
+        setInterval(update, 1000);
     }
 }

@@ -18,6 +18,9 @@
         <header>
             <h1>MARC Record Hangman</h1>
             <p>Guess the hidden title by suggesting letters!</p>
+            <div class="header-actions">
+                <button id="btn-stats" class="btn-icon" title="Statistics">📊</button>
+            </div>
         </header>
 
         <div id="game-status" class="status-bar">
@@ -42,6 +45,41 @@
 
         <div id="debug-controls" style="margin-top: 20px; display: none;">
             <button id="next-record">Next Record</button>
+        </div>
+
+        <!-- Stats Modal -->
+        <div id="stats-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span id="stat-streak" class="stat-value">0</span>
+                        <span class="stat-label">Streak</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-played" class="stat-value">0</span>
+                        <span class="stat-label">Played</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-avg-guesses" class="stat-value">0</span>
+                        <span class="stat-label">Avg Guesses</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-win-rate" class="stat-value">0%</span>
+                        <span class="stat-label">Win Rate</span>
+                    </div>
+                </div>
+
+                <div class="next-puzzle-container">
+                    <h3>Next Puzzle In:</h3>
+                    <div id="countdown-timer">00:00:00</div>
+                </div>
+
+                <div class="stats-history" id="stats-history">
+                    <!-- History items will be injected here -->
+                </div>
+            </div>
         </div>
 
         <!-- Title Guess Modal -->

@@ -111,7 +111,7 @@
             border-top: 1px solid #ccc;
             text-align: center;
             /* visibility controlled by the `.hidden` helper class */
-            box-shadow: 0 -2px 6px rgba(0,0,0,0.08);
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.08);
             z-index: 10001;
         }
 
@@ -132,7 +132,7 @@
             padding: 0 8px;
             font-weight: 600;
             font-size: 16px;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
         }
 
         .kbtn.special {
@@ -156,7 +156,8 @@
                 <a href="secret_book_club.html" class="nav-link">Secret Book Club</a>
                 <a href="crypto_cataloger.html" class="nav-link active">Crypto-Cataloger</a>
             </nav>
-            <div class="game-actions-bar" style="margin-top: 1rem; text-align: right;">
+            <div class="game-actions-bar" style="margin-top: 1rem; text-align: right; position: relative;">
+                <button id="btn-stats" class="btn-icon" title="Statistics" style="float: left;">📊</button>
                 <button id="btn-newgame" class="btn btn-newgame">New Puzzle</button>
                 <button id="btn-giveup" class="btn btn-giveup">Give Up</button>
             </div>
@@ -172,8 +173,43 @@
             </div>
         </main>
 
-            <!-- On-screen virtual keyboard for mobile (replaces hidden input) -->
-            <div id="keyboard-area" class="hidden" aria-hidden="true"></div>
+        <!-- Stats Modal -->
+        <div id="stats-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span id="stat-streak" class="stat-value">0</span>
+                        <span class="stat-label">Streak</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-played" class="stat-value">0</span>
+                        <span class="stat-label">Played</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-accuracy" class="stat-value">0%</span>
+                        <span class="stat-label">Accuracy</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-win-rate" class="stat-value">0%</span>
+                        <span class="stat-label">Win Rate</span>
+                    </div>
+                </div>
+
+                <div class="next-puzzle-container">
+                    <h3>Next Puzzle In:</h3>
+                    <div id="countdown-timer">00:00:00</div>
+                </div>
+
+                <div class="stats-history" id="stats-history">
+                    <!-- History items will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- On-screen virtual keyboard for mobile (replaces hidden input) -->
+        <div id="keyboard-area" class="hidden" aria-hidden="true"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
