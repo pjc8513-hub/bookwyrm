@@ -16,11 +16,27 @@ class SecretBookClub {
     async init() {
         await this.loadTitles();
         this.pickSecret();
+        this.setupNavigation();
         // Initialize guesses with boundaries if they aren't meant to be "guesses" per se, 
         // but the prompt says: "We put the first and last titles from the controlled list"
         // so we treat them as visually present but maybe not user "guesses".
         // Let's just store "displayedItems" which includes start/end + user guesses.
         this.render();
+    }
+
+    setupNavigation() {
+        const moreGamesBtn = document.getElementById('more-games-btn');
+        const moreGamesMenu = document.getElementById('more-games-menu');
+        if (moreGamesBtn && moreGamesMenu) {
+            moreGamesBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moreGamesMenu.classList.toggle('show');
+            });
+
+            document.addEventListener('click', () => {
+                moreGamesMenu.classList.remove('show');
+            });
+        }
     }
 
     async loadTitles() {

@@ -129,6 +129,11 @@
         statsClose.addEventListener('click', () => statsModal.classList.add('hidden'));
         document.getElementById('btn-stats').addEventListener('click', showStats);
 
+        // Close on background click
+        statsModal.addEventListener('click', (e) => {
+            if (e.target === statsModal) statsModal.classList.add('hidden');
+        });
+
         // If already played today, mark finished so they can't continue.
         // If they solved it, show the secret message as well.
         if (stats.history[today]) {
@@ -141,10 +146,26 @@
 
         updateUI();
         startCountdown();
+        setupNavigation();
+    }
+
+    function setupNavigation() {
+        const moreGamesBtn = document.getElementById('more-games-btn');
+        const moreGamesMenu = document.getElementById('more-games-menu');
+        if (moreGamesBtn && moreGamesMenu) {
+            moreGamesBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moreGamesMenu.classList.toggle('show');
+            });
+
+            document.addEventListener('click', () => {
+                moreGamesMenu.classList.remove('show');
+            });
+        }
     }
 
     function setupKeypad() {
-        const keys = ['1','2','3','4','5','6','7','8','9','.','0','⌫'];
+        const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'];
         keypadEl.innerHTML = '';
         keys.forEach(k => {
             const b = document.createElement('button');
@@ -153,7 +174,7 @@
             b.addEventListener('click', () => {
                 if (finished) return;
                 if (k === '⌫') inputEl.value = inputEl.value.slice(0, -1);
-                else inputEl.value = (inputEl.value + k).slice(0,6);
+                else inputEl.value = (inputEl.value + k).slice(0, 6);
             });
             keypadEl.appendChild(b);
         });
@@ -195,9 +216,9 @@
         guesses = [];
         finished = false;
         // new random code for session (not daily) based on random seed
-        const r = Math.floor(Math.random()*1000);
-        const f = Math.floor(Math.random()*100);
-        secret = `${String(r).padStart(3,'0')}.${String(f).padStart(2,'0')}`;
+        const r = Math.floor(Math.random() * 1000);
+        const f = Math.floor(Math.random() * 100);
+        secret = `${String(r).padStart(3, '0')}.${String(f).padStart(2, '0')}`;
         msgEl.textContent = '';
         if (btnNew) btnNew.classList.add('hidden');
         updateUI();
@@ -211,8 +232,8 @@
         if (isWin) {
             stats.wins++;
             stats.totalGuesses += guesses.length;
-            const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
-            const ystr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+            const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+            const ystr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
             if (stats.lastPlayed === ystr) stats.streak++; else stats.streak = 1;
             stats.lastPlayed = today;
         } else {
@@ -231,15 +252,15 @@
             codeBox.className = 'code-box';
             // render each character (including dot)
             g.guess.split('').forEach(ch => {
-                const d = document.createElement('div'); d.className='digit'; d.textContent = ch; codeBox.appendChild(d);
+                const d = document.createElement('div'); d.className = 'digit'; d.textContent = ch; codeBox.appendChild(d);
             });
 
-            const pegs = document.createElement('div'); pegs.className='pegs';
+            const pegs = document.createElement('div'); pegs.className = 'pegs';
             // show pegs unordered: shuffle feedback array
             const fb = g.feedback.slice();
-            for (let i = fb.length -1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [fb[i],fb[j]]=[fb[j],fb[i]]; }
+            for (let i = fb.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[fb[i], fb[j]] = [fb[j], fb[i]]; }
             fb.forEach(col => {
-                const p = document.createElement('div'); p.className='peg ' + col; pegs.appendChild(p);
+                const p = document.createElement('div'); p.className = 'peg ' + col; pegs.appendChild(p);
             });
 
             row.appendChild(codeBox);
@@ -260,12 +281,12 @@
                 const codeBox = document.createElement('div');
                 codeBox.className = 'code-box';
                 secret.split('').forEach(ch => {
-                    const d = document.createElement('div'); d.className='digit'; d.textContent = ch; codeBox.appendChild(d);
+                    const d = document.createElement('div'); d.className = 'digit'; d.textContent = ch; codeBox.appendChild(d);
                 });
 
-                const pegs = document.createElement('div'); pegs.className='pegs';
+                const pegs = document.createElement('div'); pegs.className = 'pegs';
                 for (let i = 0; i < 5; i++) {
-                    const p = document.createElement('div'); p.className='peg green'; pegs.appendChild(p);
+                    const p = document.createElement('div'); p.className = 'peg green'; pegs.appendChild(p);
                 }
 
                 row.appendChild(codeBox);
@@ -296,11 +317,11 @@
 
         const historyEl = document.getElementById('stats-history');
         historyEl.innerHTML = '<h3>Recent History</h3>';
-        Object.keys(stats.history).sort().reverse().slice(0,5).forEach(date => {
+        Object.keys(stats.history).sort().reverse().slice(0, 5).forEach(date => {
             const e = stats.history[date];
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerHTML = `<span>${date}</span><span>${e.solved? 'Solved ✓' : 'Failed ✗'} (${e.guesses} guesses)</span>`;
+            div.innerHTML = `<span>${date}</span><span>${e.solved ? 'Solved ✓' : 'Failed ✗'} (${e.guesses} guesses)</span>`;
             historyEl.appendChild(div);
         });
 
@@ -311,14 +332,14 @@
         const timerEl = document.getElementById('countdown-timer');
         const update = () => {
             const now = new Date();
-            const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0);
+            const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(0, 0, 0, 0);
             const diff = tomorrow - now;
-            const h = Math.floor(diff/3600000);
-            const m = Math.floor((diff%3600000)/60000);
-            const s = Math.floor((diff%60000)/1000);
-            timerEl.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            timerEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         };
-        update(); setInterval(update,1000);
+        update(); setInterval(update, 1000);
     }
 
     window.addEventListener('DOMContentLoaded', init);

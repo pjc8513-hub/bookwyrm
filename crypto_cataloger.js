@@ -40,11 +40,27 @@ class CryptoGame {
         await this.loadData();
         this.setupControls();
         this.setupStatsModal();
+        this.setupNavigation();
         this.startNewRound();
         this.startCountdown();
 
         // Global keyboard listener
         document.addEventListener('keydown', (e) => this.handleKeyInput(e));
+    }
+
+    setupNavigation() {
+        const moreGamesBtn = document.getElementById('more-games-btn');
+        const moreGamesMenu = document.getElementById('more-games-menu');
+        if (moreGamesBtn && moreGamesMenu) {
+            moreGamesBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moreGamesMenu.classList.toggle('show');
+            });
+
+            document.addEventListener('click', () => {
+                moreGamesMenu.classList.remove('show');
+            });
+        }
     }
 
     async loadData() {
@@ -655,6 +671,11 @@ class CryptoGame {
         if (!modal) return;
         const closeBtn = modal.querySelector('.close-modal');
         if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
+
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+        });
     }
 
     showStatsModal() {

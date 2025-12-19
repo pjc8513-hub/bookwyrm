@@ -47,12 +47,28 @@ class Game {
         this.setupGameControls();
         this.setupTitleGuessModal();
         this.setupStatsModal();
+        this.setupNavigation();
         this.startNewRound();
         this.startCountdown();
 
         document.getElementById('next-record').addEventListener('click', () => {
             this.startNewRound();
         });
+    }
+
+    setupNavigation() {
+        const moreGamesBtn = document.getElementById('more-games-btn');
+        const moreGamesMenu = document.getElementById('more-games-menu');
+        if (moreGamesBtn && moreGamesMenu) {
+            moreGamesBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moreGamesMenu.classList.toggle('show');
+            });
+
+            document.addEventListener('click', () => {
+                moreGamesMenu.classList.remove('show');
+            });
+        }
     }
 
     async loadData() {
@@ -200,6 +216,11 @@ class Game {
 
         closeBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
+
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
 
         submitBtn.addEventListener('click', () => {
             const guess = input.value;
@@ -515,6 +536,11 @@ class Game {
         const modal = document.getElementById('stats-modal');
         const closeBtn = modal.querySelector('.close-modal');
         closeBtn.onclick = () => modal.classList.add('hidden');
+
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+        });
 
         document.getElementById('btn-stats').onclick = () => this.showStatsModal();
     }

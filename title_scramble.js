@@ -19,11 +19,12 @@ class TitleScramble {
     async init() {
         await this.loadPuzzles();
         this.setupStatsModal();
+        this.setupNavigation();
         this.startCountdown();
-        
+
         const today = this.getTodayString();
         const alreadyPlayed = this.stats.history[today];
-        
+
         if (alreadyPlayed) {
             this.showCompletionScreen(alreadyPlayed.score);
         } else {
@@ -31,14 +32,29 @@ class TitleScramble {
         }
     }
 
+    setupNavigation() {
+        const moreGamesBtn = document.getElementById('more-games-btn');
+        const moreGamesMenu = document.getElementById('more-games-menu');
+        if (moreGamesBtn && moreGamesMenu) {
+            moreGamesBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moreGamesMenu.classList.toggle('show');
+            });
+
+            document.addEventListener('click', () => {
+                moreGamesMenu.classList.remove('show');
+            });
+        }
+    }
+
     async loadPuzzles() {
         try {
             const response = await fetch('data/unscramble.csv');
             if (!response.ok) throw new Error('Failed to load puzzles');
-            
+
             const text = await response.text();
             const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
-            
+
             // Skip header
             for (let i = 1; i < lines.length; i++) {
                 const parts = lines[i].split(',');
@@ -64,7 +80,7 @@ class TitleScramble {
     startGame() {
         const today = this.getTodayString();
         this.currentPuzzles = this.puzzles.filter(p => p.date === today);
-        
+
         if (this.currentPuzzles.length === 0) {
             this.gameContainer.innerHTML = '<p>No puzzles available for today.</p>';
             return;
@@ -72,7 +88,7 @@ class TitleScramble {
 
         // Shuffle puzzles for variety
         this.shuffleArray(this.currentPuzzles);
-        
+
         this.currentIndex = 0;
         this.score = 0;
         this.gameActive = true;
@@ -84,26 +100,26 @@ class TitleScramble {
         this.timer = setInterval(() => {
             this.timeRemaining--;
             this.updateTimerDisplay();
-            
-        if (this.timeRemaining <= 0) {
-            this.handleTimeout();
-        }
+
+            if (this.timeRemaining <= 0) {
+                this.handleTimeout();
+            }
         }, 1000);
     }
-    
+
     handleTimeout() {
-    this.stopTimer();
+        this.stopTimer();
 
-    const feedbackEl = document.getElementById('feedback');
-    if (feedbackEl) {
-        feedbackEl.textContent = '⏱ Time’s up!';
-        feedbackEl.className = 'feedback-message timeout';
+        const feedbackEl = document.getElementById('feedback');
+        if (feedbackEl) {
+            feedbackEl.textContent = '⏱ Time’s up!';
+            feedbackEl.className = 'feedback-message timeout';
+        }
+
+        setTimeout(() => {
+            this.skipPuzzle();
+        }, 800);
     }
-
-    setTimeout(() => {
-        this.skipPuzzle();
-    }, 800);
-}
 
 
     stopTimer() {
@@ -125,36 +141,36 @@ class TitleScramble {
         }
     }
 
-loadPuzzle() {
-    if (this.currentIndex >= this.currentPuzzles.length) {
-        this.endGame();
-        return;
+    loadPuzzle() {
+        if (this.currentIndex >= this.currentPuzzles.length) {
+            this.endGame();
+            return;
+        }
+
+        this.stopTimer();
+        this.startTimer();
+
+        this.hintUsed = false;
+        this.selectedTiles = [];
+        this.answerTiles = [];
+
+        const puzzle = this.currentPuzzles[this.currentIndex];
+        this.currentScrambled = this.scrambleTitle(puzzle.title);
+
+        this.render();
     }
-
-    this.stopTimer();
-    this.startTimer();
-
-    this.hintUsed = false;
-    this.selectedTiles = [];
-    this.answerTiles = [];
-
-    const puzzle = this.currentPuzzles[this.currentIndex];
-    this.currentScrambled = this.scrambleTitle(puzzle.title);
-
-    this.render();
-}
 
 
     scrambleTitle(title) {
         const words = title.split(' ');
         const scrambled = [];
-        
+
         for (let word of words) {
             const chars = word.split('');
             this.shuffleArray(chars);
             scrambled.push(chars.join(''));
         }
-        
+
         return scrambled.join(' ');
     }
 
@@ -169,7 +185,7 @@ loadPuzzle() {
         if (!this.gameActive) return;
 
         const puzzle = this.currentPuzzles[this.currentIndex];
-        
+
         this.gameContainer.innerHTML = `
             <div class="game-header">
                 <div class="timer-display" id="timer">${this.timeRemaining}</div>
@@ -205,13 +221,13 @@ loadPuzzle() {
     renderTiles(scrambled) {
         const scrambledContainer = document.getElementById('scrambled-tiles');
         const answerContainer = document.getElementById('answer-area');
-        
+
         if (!scrambledContainer || !answerContainer) return;
 
         // Render scrambled tiles
         scrambledContainer.innerHTML = '';
         const chars = scrambled.split('');
-        
+
         chars.forEach((char, index) => {
             if (char === ' ') {
                 const spaceTile = document.createElement('div');
@@ -246,22 +262,22 @@ loadPuzzle() {
 
     selectTile(index, char) {
         if (!this.gameActive) return;
-        
+
         this.selectedTiles.push(index);
         this.answerTiles.push({ index, char });
-        
+
         this.renderTiles(this.currentScrambled);
     }
 
     unselectTile(ansIndex) {
         if (!this.gameActive) return;
-        
+
         const removed = this.answerTiles.splice(ansIndex, 1)[0];
         const selectedIndex = this.selectedTiles.indexOf(removed.index);
         if (selectedIndex > -1) {
             this.selectedTiles.splice(selectedIndex, 1);
         }
-        
+
         this.renderTiles(this.currentScrambled);
     }
 
@@ -284,18 +300,18 @@ loadPuzzle() {
 
         const answer = this.answerTiles.map(t => t.char).join('');
         const puzzle = this.currentPuzzles[this.currentIndex];
-        const correct = answer.toLowerCase().replace(/[^a-z0-9]/g, '') === 
-                       puzzle.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const correct = answer.toLowerCase().replace(/[^a-z0-9]/g, '') ===
+            puzzle.title.toLowerCase().replace(/[^a-z0-9]/g, '');
 
         const feedbackEl = document.getElementById('feedback');
-        
+
         if (correct) {
             this.score++;
             if (feedbackEl) {
                 feedbackEl.textContent = '✓ Correct!';
                 feedbackEl.className = 'feedback-message correct';
             }
-            
+
             setTimeout(() => {
                 this.currentIndex++;
                 if (this.currentIndex >= this.currentPuzzles.length) {
@@ -309,7 +325,7 @@ loadPuzzle() {
                 feedbackEl.textContent = '✗ Incorrect - Try again!';
                 feedbackEl.className = 'feedback-message incorrect';
             }
-            
+
             setTimeout(() => {
                 if (feedbackEl) feedbackEl.textContent = '';
             }, 1500);
@@ -322,42 +338,42 @@ loadPuzzle() {
         // Move current puzzle to end
         const puzzle = this.currentPuzzles.splice(this.currentIndex, 1)[0];
         this.currentPuzzles.push(puzzle);
-        
+
         this.loadPuzzle();
     }
 
     clearAnswer() {
         if (!this.gameActive) return;
-        
+
         this.selectedTiles = [];
         this.answerTiles = [];
-        
+
         this.renderTiles(this.currentScrambled);
     }
 
     shuffleTiles() {
         if (!this.gameActive) return;
-        
+
         // Re-scramble only the unselected tiles
         const puzzle = this.currentPuzzles[this.currentIndex];
         this.currentScrambled = this.scrambleTitle(puzzle.title);
-        
+
         this.renderTiles(this.currentScrambled);
     }
 
     showHint() {
         if (!this.gameActive || this.hintUsed) return;
-        
+
         this.hintUsed = true;
         const hintDisplay = document.getElementById('hint-display');
         const hintBtn = document.getElementById('btn-hint');
         const puzzle = this.currentPuzzles[this.currentIndex];
-        
+
         if (hintDisplay) {
             hintDisplay.textContent = `Published: ${puzzle.year}`;
             hintDisplay.classList.add('visible');
         }
-        
+
         if (hintBtn) {
             hintBtn.disabled = true;
         }
@@ -368,7 +384,7 @@ loadPuzzle() {
         this.stopTimer();
         this.saveStats(this.score);
         this.showCompletionScreen(this.score);
-        
+
         if (window.confetti && this.score === this.currentPuzzles.length) {
             window.confetti({
                 particleCount: 100,
@@ -388,7 +404,7 @@ loadPuzzle() {
                 <button class="btn btn-newgame" onclick="location.reload()">Play Again Tomorrow</button>
             </div>
         `;
-        
+
         setTimeout(() => this.showStatsModal(), 1500);
     }
 
@@ -407,7 +423,7 @@ loadPuzzle() {
 
     saveStats(score) {
         const today = this.getTodayString();
-        
+
         if (this.stats.history[today]) return;
 
         this.stats.history[today] = {
@@ -439,9 +455,14 @@ loadPuzzle() {
         const modal = document.getElementById('stats-modal');
         const closeBtn = modal.querySelector('.close-modal');
         const statsBtn = document.getElementById('btn-stats');
-        
+
         if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
         if (statsBtn) statsBtn.onclick = () => this.showStatsModal();
+
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+        });
     }
 
     showStatsModal() {
@@ -470,7 +491,7 @@ loadPuzzle() {
     startCountdown() {
         const timerEl = document.getElementById('countdown-timer');
         if (!timerEl) return;
-        
+
         const update = () => {
             const now = new Date();
             const tomorrow = new Date();
