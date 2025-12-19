@@ -2,6 +2,31 @@
     const FORMAT_REGEX = /^\d{3}\.\d{2}$/;
     const STORAGE_KEY = 'dd_mastermind_stats';
 
+    // Load and parse CSV file at data/mastermind.csv
+    async function loadMastermindCSV() {
+        try {
+            const res = await fetch('data/mastermind.csv');
+            if (!res.ok) return [];
+            const txt = await res.text();
+            const lines = txt.split(/\r?\n/).filter(l => l.trim() !== '');
+            if (lines.length <= 1) return [];
+            // remove header
+            lines.shift();
+            return lines.map(line => {
+                const parts = line.split(',').map(p => p.trim());
+                return {
+                    puzzle_number: parts[0] || '',
+                    dewey_number: parts[1] || '',
+                    description: parts[2] || '',
+                    puzzle_date: parts[3] || ''
+                };
+            });
+        } catch (e) {
+            console.error('Failed to load mastermind.csv', e);
+            return [];
+        }
+    }
+
     function getTodayString() {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -78,25 +103,39 @@
     const btnNew = document.getElementById('btn-newgame');
     const statsModal = document.getElementById('stats-modal');
     const statsClose = statsModal.querySelector('.close-modal');
+    const descriptionEl = document.getElementById('puzzle-description');
 
     let secret = null;
     let guesses = [];
     let finished = false;
     let stats = loadStats();
 
-    function init() {
+    async function init() {
         const today = getTodayString();
-        secret = dailyCodeForDate(today);
+        // Try to load CSV rows and pick today's puzzle if present
+        const rows = await loadMastermindCSV();
+        const todayRow = rows.find(r => r.puzzle_date === today);
+        if (todayRow && todayRow.dewey_number) {
+            secret = todayRow.dewey_number.trim();
+            if (descriptionEl) descriptionEl.textContent = todayRow.description || '';
+        } else {
+            secret = dailyCodeForDate(today);
+            if (descriptionEl) descriptionEl.textContent = '';
+        }
         setupKeypad();
         btnSubmit.addEventListener('click', submitGuess);
         btnGiveup.addEventListener('click', giveUp);
-        btnNew.addEventListener('click', newPuzzle);
+        if (btnNew) btnNew.addEventListener('click', newPuzzle);
         statsClose.addEventListener('click', () => statsModal.classList.add('hidden'));
         document.getElementById('btn-stats').addEventListener('click', showStats);
 
-        // If already played today, show stats modal
+        // If already played today, mark finished so they can't continue.
+        // If they solved it, show the secret message as well.
         if (stats.history[today]) {
-            finished = stats.history[today].solved || true; // mark finished so they can't continue
+            finished = true; // user already played today (solved or not)
+            if (stats.history[today].solved) {
+                msgEl.textContent = `Today's Dewey: ${secret}`;
+            }
             setTimeout(() => showStats(), 200);
         }
 
@@ -160,7 +199,7 @@
         const f = Math.floor(Math.random()*100);
         secret = `${String(r).padStart(3,'0')}.${String(f).padStart(2,'0')}`;
         msgEl.textContent = '';
-        btnNew.classList.add('hidden');
+        if (btnNew) btnNew.classList.add('hidden');
         updateUI();
     }
 
@@ -208,15 +247,42 @@
             guessListEl.appendChild(row);
         });
 
+        // If the puzzle is finished and today's entry was solved, show the secret
+        // as a filled-in solved row (only if the secret isn't already among guesses).
+        const today = getTodayString();
+        const todayEntry = stats.history[today];
+        if (finished && todayEntry && todayEntry.solved) {
+            const alreadyShown = guesses.some(g => g.guess === secret);
+            if (!alreadyShown) {
+                const row = document.createElement('div');
+                row.className = 'guess-row solved';
+
+                const codeBox = document.createElement('div');
+                codeBox.className = 'code-box';
+                secret.split('').forEach(ch => {
+                    const d = document.createElement('div'); d.className='digit'; d.textContent = ch; codeBox.appendChild(d);
+                });
+
+                const pegs = document.createElement('div'); pegs.className='pegs';
+                for (let i = 0; i < 5; i++) {
+                    const p = document.createElement('div'); p.className='peg green'; pegs.appendChild(p);
+                }
+
+                row.appendChild(codeBox);
+                row.appendChild(pegs);
+                guessListEl.insertBefore(row, guessListEl.firstChild);
+            }
+        }
+
         // Update buttons visibility
         if (finished) {
             btnGiveup.classList.add('hidden');
             btnSubmit.disabled = true;
-            btnNew.classList.remove('hidden');
+            if (btnNew) btnNew.classList.remove('hidden');
         } else {
             btnGiveup.classList.remove('hidden');
             btnSubmit.disabled = false;
-            btnNew.classList.add('hidden');
+            if (btnNew) btnNew.classList.add('hidden');
         }
     }
 

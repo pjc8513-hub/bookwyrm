@@ -276,6 +276,31 @@ header {
     background-color: var(--accent-color);
 }
 
+/* Mastermind page specific button visibility tweaks */
+.mastermind .btn {
+    background-color: var(--accent-color);
+    color: white;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.12);
+}
+
+.mastermind .btn:hover {
+    background-color: #2573a8; /* slightly darker accent */
+}
+
+/* Keypad buttons in mastermind (class 'btn k') */
+.mastermind .btn.k {
+    background-color: var(--primary-color);
+    color: white;
+    width: 56px;
+    height: 44px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.mastermind .btn.k:hover {
+    background-color: var(--accent-color);
+}
+
 .message-area {
     text-align: center;
     min-height: 1.5rem;

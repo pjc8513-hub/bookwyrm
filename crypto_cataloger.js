@@ -130,6 +130,31 @@ class CryptoGame {
 
         this.generateCipher();
         this.revealHints();
+        // If the daily puzzle was already solved, reveal all used cipher numbers so
+        // the puzzle displays fully filled in on load (like Hangman does).
+        if (this.documentSolved) {
+            // Gather used numbers from the current record and reveal them all
+            let usedNumbers = new Set();
+            let summaryFound = false;
+            this.currentRecord.fields.forEach(field => {
+                if (this.displayFields.includes(field.tag) && field.subfields) {
+                    if (field.tag === '520') {
+                        if (summaryFound) return;
+                        summaryFound = true;
+                    }
+                    const subfieldsToShow = this.subfieldConfig[field.tag] || this.subfieldConfig['default'];
+                    subfieldsToShow.forEach(code => {
+                        const sf = field.subfields.find(s => s.code === code);
+                        if (sf) {
+                            sf.data.toUpperCase().split('').forEach(c => {
+                                if (/[A-Z]/.test(c)) usedNumbers.add(this.cipherMap[c]);
+                            });
+                        }
+                    });
+                }
+            });
+            usedNumbers.forEach(n => this.revealedNumbers.add(n));
+        }
         this.render();
         this.updateMessage("Click any blank and type a letter to solve.");
 
@@ -469,8 +494,10 @@ class CryptoGame {
     }
 
     setupControls() {
-        document.getElementById('btn-newgame').addEventListener('click', () => this.startNewRound());
-        document.getElementById('btn-giveup').addEventListener('click', () => {
+        const btnNew = document.getElementById('btn-newgame');
+        if (btnNew) btnNew.addEventListener('click', () => this.startNewRound());
+        const btnGiveup = document.getElementById('btn-giveup');
+        if (btnGiveup) btnGiveup.addEventListener('click', () => {
             if (this.documentSolved) return;
             // Reveal all
             for (let num in this.reverseCipherMap) {
@@ -533,7 +560,8 @@ class CryptoGame {
             keyboardArea.appendChild(fragment);
         }
 
-        document.getElementById('btn-stats').onclick = () => this.showStatsModal();
+        const btnStats = document.getElementById('btn-stats');
+        if (btnStats) btnStats.onclick = () => this.showStatsModal();
 
         // Hide keyboard when tapping outside stacks or keyboard
         document.addEventListener('click', (e) => {
@@ -624,32 +652,36 @@ class CryptoGame {
 
     setupStatsModal() {
         const modal = document.getElementById('stats-modal');
+        if (!modal) return;
         const closeBtn = modal.querySelector('.close-modal');
-        closeBtn.onclick = () => modal.classList.add('hidden');
+        if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
     }
 
     showStatsModal() {
         const modal = document.getElementById('stats-modal');
+        if (!modal) return;
 
-        document.getElementById('stat-streak').textContent = this.stats.streak;
-        document.getElementById('stat-played').textContent = this.stats.played;
+        const streakEl = document.getElementById('stat-streak'); if (streakEl) streakEl.textContent = this.stats.streak;
+        const playedEl = document.getElementById('stat-played'); if (playedEl) playedEl.textContent = this.stats.played;
 
         const overallAccuracy = this.stats.totalAttempts > 0 ? Math.round((this.stats.totalCorrect / this.stats.totalAttempts) * 100) : 0;
-        document.getElementById('stat-accuracy').textContent = overallAccuracy + '%';
+        const accEl = document.getElementById('stat-accuracy'); if (accEl) accEl.textContent = overallAccuracy + '%';
 
         const winRate = this.stats.played > 0 ? Math.round((this.stats.wins / this.stats.played) * 100) : 0;
-        document.getElementById('stat-win-rate').textContent = winRate + '%';
+        const winEl = document.getElementById('stat-win-rate'); if (winEl) winEl.textContent = winRate + '%';
 
         // History
         const historyEl = document.getElementById('stats-history');
-        historyEl.innerHTML = '<h3>Recent History</h3>';
-        Object.keys(this.stats.history).sort().reverse().slice(0, 5).forEach(date => {
-            const entry = this.stats.history[date];
-            const div = document.createElement('div');
-            div.classList.add('history-item');
-            div.innerHTML = `<span>${date}</span><span>${entry.solved ? 'Solved ✓' : 'Failed ✗'} (${entry.accuracy}% acc)</span>`;
-            historyEl.appendChild(div);
-        });
+        if (historyEl) {
+            historyEl.innerHTML = '<h3>Recent History</h3>';
+            Object.keys(this.stats.history).sort().reverse().slice(0, 5).forEach(date => {
+                const entry = this.stats.history[date];
+                const div = document.createElement('div');
+                div.classList.add('history-item');
+                div.innerHTML = `<span>${date}</span><span>${entry.solved ? 'Solved ✓' : 'Failed ✗'} (${entry.accuracy}% acc)</span>`;
+                historyEl.appendChild(div);
+            });
+        }
 
         modal.classList.remove('hidden');
     }
