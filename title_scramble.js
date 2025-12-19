@@ -11,6 +11,7 @@ class TitleScramble {
         this.hintUsed = false;
         this.selectedTiles = [];
         this.answerTiles = [];
+        this.currentScrambled = '';
         this.stats = this.loadStats();
         this.gameContainer = document.getElementById('game-container');
     }
@@ -118,6 +119,11 @@ class TitleScramble {
         this.hintUsed = false;
         this.selectedTiles = [];
         this.answerTiles = [];
+        
+        // Generate scrambled version once when puzzle loads
+        const puzzle = this.currentPuzzles[this.currentIndex];
+        this.currentScrambled = this.scrambleTitle(puzzle.title);
+        
         this.render();
     }
 
@@ -145,7 +151,6 @@ class TitleScramble {
         if (!this.gameActive) return;
 
         const puzzle = this.currentPuzzles[this.currentIndex];
-        const scrambled = this.scrambleTitle(puzzle.title);
         
         this.gameContainer.innerHTML = `
             <div class="game-header">
@@ -175,7 +180,7 @@ class TitleScramble {
             </div>
         `;
 
-        this.renderTiles(scrambled);
+        this.renderTiles(this.currentScrambled);
         this.attachEventListeners();
     }
 
@@ -227,9 +232,7 @@ class TitleScramble {
         this.selectedTiles.push(index);
         this.answerTiles.push({ index, char });
         
-        const puzzle = this.currentPuzzles[this.currentIndex];
-        const scrambled = this.scrambleTitle(puzzle.title);
-        this.renderTiles(scrambled);
+        this.renderTiles(this.currentScrambled);
     }
 
     unselectTile(ansIndex) {
@@ -241,9 +244,7 @@ class TitleScramble {
             this.selectedTiles.splice(selectedIndex, 1);
         }
         
-        const puzzle = this.currentPuzzles[this.currentIndex];
-        const scrambled = this.scrambleTitle(puzzle.title);
-        this.renderTiles(scrambled);
+        this.renderTiles(this.currentScrambled);
     }
 
     attachEventListeners() {
@@ -313,14 +314,17 @@ class TitleScramble {
         this.selectedTiles = [];
         this.answerTiles = [];
         
-        const puzzle = this.currentPuzzles[this.currentIndex];
-        const scrambled = this.scrambleTitle(puzzle.title);
-        this.renderTiles(scrambled);
+        this.renderTiles(this.currentScrambled);
     }
 
     shuffleTiles() {
         if (!this.gameActive) return;
-        this.render();
+        
+        // Re-scramble only the unselected tiles
+        const puzzle = this.currentPuzzles[this.currentIndex];
+        this.currentScrambled = this.scrambleTitle(puzzle.title);
+        
+        this.renderTiles(this.currentScrambled);
     }
 
     showHint() {
