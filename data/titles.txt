@@ -95,6 +95,7 @@ Burr
 Bury my heart at Wounded Knee
 Call of the wild, the
 Carrie
+Catch-22
 Catcher in the rye, the
 Charlotte's web
 Christine 
@@ -111,6 +112,7 @@ David Copperfield
 Desolation angels
 Doctor sleep 
 Doctor Jazz
+Don Quixote
 Dracula 
 Dragon reborn, the 
 Drawing of the three
@@ -120,6 +122,7 @@ Dungeon crawler Carl
 Empire of the sun
 Ender's game
 Eye of the world, the
+Fahrenheit 451
 Farewell to arms
 Fear and loathing in Las Vegas
 Feast of crowns, a
@@ -158,6 +161,8 @@ Hunchback of Notre-Dame, the
 Hyperion
 In cold blood
 iRobot
+Invisible Man
+Jane Eyre
 Kafka on the shore
 Kingdom of fear
 Kite runner, the
@@ -169,6 +174,7 @@ Long mile, the
 Lord of chaos
 Max and the cats
 Memory of light, a
+Middlemarch
 Midnight in the garden of good and evil 
 Misery
 Moby Dick
@@ -182,6 +188,7 @@ Of mice and men
 Old man and the sea, the
 Oliver Twist
 On the road
+One Hundred Years of Solitude
 Outbreak
 Paradise lost
 Path of daggers, the
@@ -204,13 +211,19 @@ Siddhartha
 Sideways
 Silence
 Silmarillion, the
+Slaughterhouse-Five
+Sound and the Fury, the
 Stand, the
 Storm of swords, a
+Stranger, the
 Tale of two cities, a
 Through the looking glass 
 Time to kill, a
 To kill a mockingbird
+To the lighthouse
+Trial, the
 Two towers, the
+Ulysses
 Unbearable lightness of being, the
 Under the dome
 Vegetarian, the

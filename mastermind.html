@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastermind — Dewey Decimal</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .guess-row { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+        .code-box { display:inline-flex; gap:6px; }
+        .digit { width:34px; height:40px; border-radius:6px; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; font-weight:700; background:#fff; }
+        .pegs { display:inline-flex; gap:6px; margin-left:8px; }
+        .peg { width:16px; height:16px; border-radius:50%; border:1px solid #999; }
+        .peg.green { background:#2ecc71; }
+        .peg.yellow { background:#f1c40f; }
+        .peg.red { background:#e74c3c; }
+        .controls { margin-top:16px; display:flex; gap:8px; align-items:center; }
+        .keypad { display:grid; grid-template-columns: repeat(3, 56px); gap:8px; }
+        .k { height:44px; font-size:18px; }
+        .guess-list { margin-top:16px; }
+        .hint { color:#666; font-size:0.9rem; margin-top:6px; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="nav-bar">
+            <a href="index.html" class="nav-link">MARC Hangman</a>
+            <a href="mastermind.html" class="nav-link active">Mastermind (Dewey)</a>
+            <a href="secret_book_club.html" class="nav-link">Secret Book Club</a>
+            <a href="crypto_cataloger.html" class="nav-link">Crypto-Cataloger</a>
+        </nav>
+
+        <header>
+            <h1>Mastermind — Dewey Decimal</h1>
+            <p>Guess today's Dewey number (format: <strong>DDD.DD</strong>). Feedback pegs are unordered.</p>
+            <div class="header-actions">
+                <button id="btn-stats" class="btn-icon" title="Statistics">📊</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="game-status" class="status-bar">
+                <span id="message"></span>
+            </div>
+
+            <div class="play-area">
+                <div class="controls">
+                    <div>
+                        <input id="guess-input" placeholder="000.00" maxlength="6" style="width:120px; height:38px; font-size:18px; padding:6px;" />
+                        <div class="hint">Example: 917.21</div>
+                    </div>
+                    <div>
+                        <button id="btn-submit" class="btn">Submit Guess</button>
+                        <button id="btn-giveup" class="btn btn-giveup">Give Up</button>
+                        <button id="btn-newgame" class="btn btn-newgame hidden">New Puzzle</button>
+                    </div>
+                </div>
+
+                <div class="keypad-area" style="margin-top:12px;">
+                    <div class="keypad" id="keypad">
+                        <!-- keys injected -->
+                    </div>
+                </div>
+
+                <div class="guess-list" id="guess-list">
+                    <!-- guess rows -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Stats Modal -->
+        <div id="stats-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span id="stat-streak" class="stat-value">0</span>
+                        <span class="stat-label">Streak</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-played" class="stat-value">0</span>
+                        <span class="stat-label">Played</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-avg-guesses" class="stat-value">0</span>
+                        <span class="stat-label">Avg Guesses</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-win-rate" class="stat-value">0%</span>
+                        <span class="stat-label">Win Rate</span>
+                    </div>
+                </div>
+
+                <div class="next-puzzle-container">
+                    <h3>Next Puzzle In:</h3>
+                    <div id="countdown-timer">00:00:00</div>
+                </div>
+
+                <div class="stats-history" id="stats-history"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="mastermind.js"></script>
+</body>
+
+</html>
