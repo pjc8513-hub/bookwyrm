@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title Scramble</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .scramble-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .game-header {
+            text-align: center;
+            width: 100%;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+        }
+
+        .timer-display.warning {
+            color: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .round-info {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .scrambled-tiles {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+            min-height: 80px;
+        }
+
+        .tile {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(145deg, #f0e6d2, #d4c5a9);
+            border: 2px solid #8b7355;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .tile.selected {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            transform: translateY(-4px);
+        }
+
+        .tile.space {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            cursor: default;
+            width: 20px;
+        }
+
+        .answer-area {
+            min-height: 80px;
+            border: 3px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 1rem;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            align-items: center;
+            background-color: #f8f9fa;
+        }
+
+        .answer-area.has-tiles {
+            border-color: var(--accent-color);
+            background-color: #e8f4f8;
+        }
+
+        .hint-display {
+            text-align: center;
+            margin: 1rem 0;
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            min-height: 30px;
+        }
+
+        .hint-display.visible {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .game-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn-control {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        .btn-submit {
+            background-color: #27ae60;
+        }
+
+        .btn-submit:hover {
+            background-color: #229954;
+        }
+
+        .btn-skip {
+            background-color: #f39c12;
+        }
+
+        .btn-skip:hover {
+            background-color: #d68910;
+        }
+
+        .btn-clear {
+            background-color: #95a5a6;
+        }
+
+        .btn-clear:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-shuffle {
+            background-color: #9b59b6;
+        }
+
+        .btn-shuffle:hover {
+            background-color: #8e44ad;
+        }
+
+        .btn-hint {
+            background-color: var(--accent-color);
+        }
+
+        .btn-hint:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-control:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 1rem 0;
+        }
+
+        .feedback-message {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            min-height: 30px;
+            animation: fadeIn 0.3s;
+        }
+
+        .feedback-message.correct {
+            color: #27ae60;
+        }
+
+        .feedback-message.incorrect {
+            color: #e74c3c;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .game-over-screen {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .game-over-screen h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .final-score {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 600px) {
+            .tile {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .timer-display {
+                font-size: 2rem;
+            }
+
+            .game-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-control {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="nav-bar">
+            <a href="index.html" class="nav-link">MARC Hangman</a>
+            <a href="secret_book_club.html" class="nav-link">Secret Book Club</a>
+            <a href="crypto_cataloger.html" class="nav-link">Crypto-Cataloger</a>
+            <a href="title_scramble.html" class="nav-link active">Title Scramble</a>
+        </nav>
+        
+        <header>
+            <h1>Title Scramble</h1>
+            <p>Unscramble as many book titles as you can!</p>
+            <div class="header-actions">
+                <button id="btn-stats" class="btn-icon" title="Statistics">📊</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="game-container" class="scramble-container">
+                <!-- Game content will be injected here -->
+            </div>
+        </main>
+
+        <!-- Stats Modal -->
+        <div id="stats-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span id="stat-streak" class="stat-value">0</span>
+                        <span class="stat-label">Streak</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-played" class="stat-value">0</span>
+                        <span class="stat-label">Played</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-avg-score" class="stat-value">0</span>
+                        <span class="stat-label">Avg Score</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-best" class="stat-value">0</span>
+                        <span class="stat-label">Best Score</span>
+                    </div>
+                </div>
+
+                <div class="next-puzzle-container">
+                    <h3>Next Puzzle In:</h3>
+                    <div id="countdown-timer">00:00:00</div>
+                </div>
+
+                <div class="stats-history" id="stats-history">
+                    <!-- History items will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="title_scramble.js"></script>
+</body>
+
+</html>
