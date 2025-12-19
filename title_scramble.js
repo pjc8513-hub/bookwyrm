@@ -4,7 +4,7 @@ class TitleScramble {
         this.currentPuzzles = [];
         this.currentIndex = 0;
         this.score = 0;
-        this.timeLimit = 30;
+        this.timeLimit = 60;
         this.timeRemaining = this.timeLimit;
         this.timer = null;
         this.gameActive = false;
@@ -76,7 +76,6 @@ class TitleScramble {
         this.currentIndex = 0;
         this.score = 0;
         this.gameActive = true;
-        this.startTimer();
         this.loadPuzzle();
     }
 
@@ -86,11 +85,26 @@ class TitleScramble {
             this.timeRemaining--;
             this.updateTimerDisplay();
             
-            if (this.timeRemaining <= 0) {
-                this.endGame();
-            }
+        if (this.timeRemaining <= 0) {
+            this.handleTimeout();
+        }
         }, 1000);
     }
+    
+    handleTimeout() {
+    this.stopTimer();
+
+    const feedbackEl = document.getElementById('feedback');
+    if (feedbackEl) {
+        feedbackEl.textContent = '⏱ Time’s up!';
+        feedbackEl.className = 'feedback-message timeout';
+    }
+
+    setTimeout(() => {
+        this.skipPuzzle();
+    }, 800);
+}
+
 
     stopTimer() {
         if (this.timer) {
@@ -111,21 +125,25 @@ class TitleScramble {
         }
     }
 
-    loadPuzzle() {
-        if (this.currentIndex >= this.currentPuzzles.length) {
-            this.currentIndex = 0;
-        }
-
-        this.hintUsed = false;
-        this.selectedTiles = [];
-        this.answerTiles = [];
-        
-        // Generate scrambled version once when puzzle loads
-        const puzzle = this.currentPuzzles[this.currentIndex];
-        this.currentScrambled = this.scrambleTitle(puzzle.title);
-        
-        this.render();
+loadPuzzle() {
+    if (this.currentIndex >= this.currentPuzzles.length) {
+        this.endGame();
+        return;
     }
+
+    this.stopTimer();
+    this.startTimer();
+
+    this.hintUsed = false;
+    this.selectedTiles = [];
+    this.answerTiles = [];
+
+    const puzzle = this.currentPuzzles[this.currentIndex];
+    this.currentScrambled = this.scrambleTitle(puzzle.title);
+
+    this.render();
+}
+
 
     scrambleTitle(title) {
         const words = title.split(' ');
