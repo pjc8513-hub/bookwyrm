@@ -1,0 +1,79 @@
+[
+  {
+    "id": 1,
+    "author": "William Shakespeare",
+    "work": "Hamlet",
+    "original": "To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles, And by opposing end them?",
+    "pastiches": [
+      "To exist or cease to be, this is the trial: If it is better for the soul to bear the heavy blows of fate’s unkindness, or to stand tall against a tide of sorrows and, in the fight, bring them to a close.",
+      "Shall I remain or pass away? This is the core inquiry: Is it more virtuous to endure the sharp arrows of a cruel destiny within the mind, or to struggle against a vast ocean of misfortune and, through resistance, conquer it?",
+      "To be or to remain unborn, that is the dilemma: Whether the spirit should patiently suffer the strikes of an unruly world, or rise in defiance of a drowning sea of woe, ending the strife by force."
+    ]
+  },
+  {
+    "id": 2,
+    "author": "Jane Austen",
+    "work": "Pride and Prejudice",
+    "original": "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.",
+    "pastiches": [
+      "It is a fact widely recognized by all, that a bachelor of considerable wealth is inevitably seeking a companion for life.",
+      "Society generally accepts as certain that any gentleman of ample means is surely in search of a suitable spouse.",
+      "There is no point more commonly agreed upon than this: a man of property and solitary state is destined for the marriage market."
+    ]
+  },
+  {
+    "id": 3,
+    "author": "Charles Dickens",
+    "work": "A Tale of Two Cities",
+    "original": "It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity.",
+    "pastiches": [
+      "The era was one of incomparable glory and profound despair; a season of great insight and yet of utter absurdity; a time for deep faith and also for total doubt.",
+      "Never were times more splendid, nor more terrible; it was a period marked by both supreme brilliance and total folly, a span of absolute trust and complete skepticism.",
+      "In those days, the world saw its finest hour and its darkest night; it was a time of deep learning and of shallow madness, of fervent devotion and of cold disbelief."
+    ]
+  },
+  {
+    "id": 4,
+    "author": "Herman Melville",
+    "work": "Moby Dick",
+    "original": "Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.",
+    "pastiches": [
+      "You may refer to me as Ishmael. A few years back, with my pockets empty and the land offering me no joy, I decided to take to the waves and explore the vast blue reaches of the globe.",
+      "Ishmael is the name I go by. Some time ago, finding my finances low and my spirit restless on dry ground, I resolved to embark upon a voyage and witness the wonders of the sea.",
+      "My name is Ishmael. Not so long ago, being short of coin and weary of the shore, I was moved to seek the ocean's salt and wander across the world's great waters."
+    ]
+  },
+  {
+    "id": 5,
+    "author": "Mary Shelley",
+    "work": "Frankenstein",
+    "original": "Beware; for I am fearless, and therefore powerful.",
+    "pastiches": [
+      "Take heed; I know no dread, and thus my strength is limitless.",
+      "Be warned; I have cast off all fear, and that has made me a force to be reckoned with.",
+      "Watch yourself; because I lack fear, I possess a power you cannot imagine."
+    ]
+  },
+  {
+    "id": 6,
+    "author": "William Shakespeare",
+    "work": "King Lear",
+    "original": "How sharper than a serpent's tooth it is to have a thankless child!",
+    "pastiches": [
+      "How drier than a desert's sand it is to hear a loved one's unkind command!",
+      "How colder than a winter's night it is to share a home with a loveless spouse's fight!",
+      "How heavier than a mountain's weight it is to carry an unfulfilled dream's haunting fate!"
+    ]
+  },
+  {
+    "id": 7,
+    "author": "William Shakespeare",
+    "work": "King Lear",
+    "original": "Love’s not love when it is mingled with regards that stand aloof from the entire point",
+    "pastiches": [
+      "Love's not true when it's tainted by doubts that linger, distant from the heart's core.",
+      "Devotion's not pure when it's mixed with motives that hide behind a guarded score.",
+      "Passion's not fire when it's dampened by fears that stand apart from love's one score."
+    ]
+  }
+]

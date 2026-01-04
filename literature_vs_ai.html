@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literature vs AI</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .gameshow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .quote-box {
+            background-color: #f8f9fa;
+            border-left: 5px solid var(--accent-color);
+            padding: 2rem;
+            font-family: 'Georgia', serif;
+            font-size: 1.4rem;
+            line-height: 1.6;
+            font-style: italic;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .option-btn {
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            padding: 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #f1f1f1;
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .option-btn.correct {
+            background-color: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        .option-btn.incorrect {
+            background-color: #e74c3c;
+            border-color: #c0392b;
+            color: white;
+        }
+
+        .score-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .quote-box {
+                font-size: 1.1rem;
+                padding: 1.5rem;
+            }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .pulse {
+            animation: pulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .source-info {
+            margin-top: 1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .source-info.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="nav-bar">
+            <div class="active-link-mobile">Lit vs AI</div>
+            <div class="nav-links-main">
+                <a href="index.html" class="nav-link">Hangman</a>
+                <a href="mastermind.html" class="nav-link">Mastermind</a>
+                <a href="secret_book_club.html" class="nav-link">Book Club</a>
+                <a href="crypto_cataloger.html" class="nav-link">Crypto</a>
+                <a href="title_scramble.html" class="nav-link">Scramble</a>
+                <a href="literature_vs_ai.html" class="nav-link active">Lit vs AI</a>
+            </div>
+            <div class="nav-dropdown">
+                <button class="nav-link dropdown-toggle" id="more-games-btn">More Games ▾</button>
+                <div class="dropdown-menu" id="more-games-menu">
+                    <a href="index.html" class="dropdown-item">MARC Hangman</a>
+                    <a href="mastermind.html" class="dropdown-item">Mastermind (Dewey)</a>
+                    <a href="secret_book_club.html" class="dropdown-item">Secret Book Club</a>
+                    <a href="crypto_cataloger.html" class="dropdown-item">Crypto-Cataloger</a>
+                    <a href="title_scramble.html" class="dropdown-item">Title Scramble</a>
+                    <a href="literature_vs_ai.html" class="dropdown-item active">Literature vs AI</a>
+                </div>
+            </div>
+        </nav>
+
+        <header>
+            <h1>Literature vs AI</h1>
+            <p>Can you spot the real classic among the AI pastiches?</p>
+            <div class="header-actions">
+                <button id="btn-stats" class="btn-icon" title="Statistics">📊</button>
+            </div>
+        </header>
+
+        <div id="game-status" class="status-bar">
+            <span id="score">Points: 0</span>
+            <span id="question-count">Question: 1/5</span>
+        </div>
+
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+
+        <div class="gameshow-container">
+            <div id="quote-area" class="quote-box">
+                Loading quote...
+            </div>
+            
+            <div id="source-info" class="source-info">
+                — <span id="author-name"></span>, <i id="work-title"></i>
+            </div>
+
+            <div id="options-area" class="options-grid">
+                <!-- Buttons will be injected here -->
+            </div>
+
+            <div class="game-actions">
+                <button id="btn-next" class="btn btn-newgame hidden">Next Question</button>
+                <button id="btn-restart" class="btn btn-newgame hidden">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Stats Modal (Placeholder similar to index.html) -->
+        <div id="stats-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span id="stat-streak" class="stat-value">0</span>
+                        <span class="stat-label">Streak</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-played" class="stat-value">0</span>
+                        <span class="stat-label">Played</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-best-score" class="stat-value">0</span>
+                        <span class="stat-label">Best Score</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stat-avg-score" class="stat-value">0</span>
+                        <span class="stat-label">Avg Score</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="literature_vs_ai.js"></script>
+</body>
+
+</html>
