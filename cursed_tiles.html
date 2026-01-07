@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursed Tiles - Exorcist Puzzle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --text-color: #e6edf3;
+            --text-dim: #8b949e;
+            --gold: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.3);
+            --cursed: #ff4d4d;
+            --safe-glow: rgba(74, 222, 128, 0.2);
+            --tile-bg: #21262d;
+            --tile-hover: #30363d;
+            --tile-revealed: #0d1117;
+            --accent: #8957e5;
+            --flagged-bg: rgba(212, 175, 55, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            z-index: 10;
+        }
+
+        h1 {
+            font-weight: 600;
+            letter-spacing: 0.2rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 1.1rem;
+            color: var(--text-dim);
+        }
+
+        .timer {
+            font-family: monospace;
+            color: var(--gold);
+        }
+
+        .game-container {
+            position: relative;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .grid-layout {
+            display: grid;
+            gap: 6px;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            border-radius: 4px;
+        }
+
+        /* Clue Cells */
+        .clue-cell {
+            color: var(--text-dim);
+            font-size: 1rem;
+            background: transparent;
+        }
+
+        .row-clue {
+            justify-content: flex-end;
+            padding-right: 12px;
+        }
+
+        .col-clue {
+            align-items: flex-end;
+            padding-bottom: 8px;
+        }
+
+        .corner {
+            background: transparent;
+        }
+
+        /* Game Tiles */
+        .tile {
+            background: var(--tile-bg);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tile:hover:not(.revealed) {
+            background: var(--tile-hover);
+            border-color: var(--gold);
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .tile.revealed {
+            background: var(--tile-revealed);
+            cursor: default;
+            border-color: var(--border-color);
+        }
+
+        .tile.safe {
+            color: var(--gold);
+            text-shadow: 0 0 8px var(--gold-glow);
+        }
+
+        .tile.hint {
+            border-color: var(--gold);
+        }
+
+        .tile.cursed {
+            background: var(--cursed);
+            border-color: var(--cursed);
+            color: white;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .tile.flagged::after {
+            content: '!';
+            color: var(--gold);
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--gold-glow);
+        }
+
+        .tile.flagged {
+            background: var(--flagged-bg);
+            border-color: var(--gold);
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-4px);
+            }
+
+            75% {
+                transform: translateX(4px);
+            }
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        .overlay h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            letter-spacing: 0.3rem;
+        }
+
+        .overlay.win h2 {
+            color: var(--gold);
+        }
+
+        .overlay.lose h2 {
+            color: var(--cursed);
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background: var(--gold);
+            color: black;
+            box-shadow: 0 0 20px var(--gold-glow);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            z-index: 10;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            margin-top: 0;
+        }
+
+        .help-content {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+
+        .help-content h3 {
+            color: var(--gold);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        .help-content p,
+        .help-content li {
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+        }
+
+        .help-content ul {
+            list-style: none;
+            margin-left: 0.5rem;
+        }
+
+        .help-content li::before {
+            content: '▫';
+            color: var(--gold);
+            margin-right: 0.5rem;
+        }
+
+        .toggle-btn.active {
+            background: var(--gold);
+            color: black;
+        }
+
+        /* Background effects */
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+    <div class="header">
+        <h1>Cursed Tiles</h1>
+        <div class="stats">
+            <div>Timer: <span id="timer" class="timer">00:00</span></div>
+            <div>Safe Left: <span id="safe-counter">0</span></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="flag-toggle" class="btn btn-small" onclick="toggleFlagMode()">Flag Mode: OFF</button>
+        <button class="btn btn-small" onclick="showHelp()">?</button>
+    </div>
+
+    <div class="game-container">
+        <div id="grid" class="grid-layout"></div>
+    </div>
+
+    <div id="overlay" class="overlay">
+        <h2 id="overlay-title">Result</h2>
+        <p id="overlay-msg"></p>
+        <button class="btn" onclick="resetGame()">Try Again</button>
+    </div>
+
+    <div id="help-modal" class="overlay" onclick="closeHelp(event)">
+        <div class="help-content" onclick="event.stopPropagation()">
+            <h3>How to Play</h3>
+            <p>Reveal all <b>safe tiles</b> to purify the grid. Avoid the <b>cursed tiles</b> (✖).</p>
+            <ul>
+                <li><b>Column Numbers:</b> Total cursed tiles in that column.</li>
+                <li><b>Row Numbers:</b> Total cursed tiles in that row.</li>
+                <li><b>Tile Numbers:</b> Count of adjacent tiles (up, down, left, right) that are <b>safe</b>.</li>
+                <li><b>Flagging:</b> Shift + Click (or toggle Flag Mode) to mark suspicious tiles with a '!'.</li>
+            </ul>
+            <button class="btn btn-small" style="width: 100%" onclick="closeHelp()">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            puzzle: null,
+            timer: 0,
+            timerInterval: null,
+            gameActive: false,
+            revealedCount: 0,
+            totalSafe: 0,
+            isFlagMode: false
+        };
+
+        async function init() {
+            try {
+                const response = await fetch('data/puzzles.json');
+                const puzzles = await response.json();
+                // Load the first puzzle for now
+                gameState.puzzle = puzzles[0];
+                renderGrid();
+            } catch (err) {
+                console.error("Failed to load puzzle:", err);
+            }
+        }
+
+        function renderGrid() {
+            const { size, rows, cols, grid } = gameState.puzzle;
+            const gridEl = document.getElementById('grid');
+
+            // Setup grid template
+            gridEl.style.gridTemplateColumns = `repeat(${size + 1}, 50px)`;
+            gridEl.innerHTML = '';
+
+            // 1. Top-Left Corner
+            const corner = document.createElement('div');
+            corner.className = 'cell corner';
+            gridEl.appendChild(corner);
+
+            // 2. Header Row (Column Counts)
+            cols.forEach(count => {
+                const cell = document.createElement('div');
+                cell.className = 'cell clue-cell col-clue';
+                cell.textContent = count;
+                gridEl.appendChild(cell);
+            });
+
+            // Calculate total safe tiles and hints
+            gameState.totalSafe = 0;
+            gameState.revealedCount = 0;
+
+            // 3. Main Grid Rows
+            grid.forEach((rowData, r) => {
+                // Row Clue
+                const rowClue = document.createElement('div');
+                rowClue.className = 'cell clue-cell row-clue';
+                rowClue.textContent = rows[r];
+                gridEl.appendChild(rowClue);
+
+                // Grid Tiles
+                rowData.forEach((tileData, c) => {
+                    const tileEl = document.createElement('div');
+                    tileEl.className = 'cell tile';
+                    tileEl.dataset.r = r;
+                    tileEl.dataset.c = c;
+
+                    if (!tileData.cursed) gameState.totalSafe++;
+
+                    if (tileData.revealed) {
+                        tileEl.classList.add('revealed', 'safe', 'hint');
+                        tileEl.textContent = tileData.clue !== null ? tileData.clue : '';
+                        gameState.revealedCount++;
+                    }
+
+                    tileEl.onclick = (e) => handleTileClick(r, c, tileEl, e);
+                    gridEl.appendChild(tileEl);
+                });
+            });
+
+            updateSafeCounter();
+        }
+
+        function handleTileClick(r, c, el, e) {
+            if (el.classList.contains('revealed') || (gameState.puzzle && !gameState.puzzle.grid[r][c] && !gameState.gameActive && gameState.revealedCount === gameState.totalSafe)) return;
+
+            // Handle Flagging
+            if ((e && e.shiftKey) || gameState.isFlagMode) {
+                el.classList.toggle('flagged');
+                return;
+            }
+
+            // If tile is flagged, ignore normal click (protection)
+            if (el.classList.contains('flagged')) return;
+
+            // Start timer on first click
+            if (!gameState.gameActive && gameState.revealedCount < gameState.totalSafe) {
+                startTimer();
+                gameState.gameActive = true;
+            }
+
+            const tileData = gameState.puzzle.grid[r][c];
+
+            if (tileData.cursed) {
+                gameOver(false);
+                el.classList.add('revealed', 'cursed');
+                el.textContent = '✖';
+                revealAllCursed();
+            } else {
+                el.classList.add('revealed', 'safe');
+                // Calculate adjacent safe count if not already in data (though it should be)
+                const clue = tileData.clue !== null ? tileData.clue : countAdjacentSafe(r, c);
+                el.textContent = clue;
+                gameState.revealedCount++;
+                updateSafeCounter();
+
+                if (gameState.revealedCount === gameState.totalSafe) {
+                    gameOver(true);
+                }
+            }
+        }
+
+        function countAdjacentSafe(r, c) {
+            const grid = gameState.puzzle.grid;
+            const size = gameState.puzzle.size;
+            const dims = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+            let count = 0;
+            dims.forEach(([dr, dc]) => {
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+                    if (!grid[nr][nc].cursed) count++;
+                }
+            });
+            return count;
+        }
+
+        function startTimer() {
+            gameState.timer = 0;
+            clearInterval(gameState.timerInterval);
+            gameState.timerInterval = setInterval(() => {
+                gameState.timer++;
+                const mins = String(Math.floor(gameState.timer / 60)).padStart(2, '0');
+                const secs = String(gameState.timer % 60).padStart(2, '0');
+                document.getElementById('timer').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function gameOver(win) {
+            clearInterval(gameState.timerInterval);
+            gameState.gameActive = false;
+
+            const overlay = document.getElementById('overlay');
+            const title = document.getElementById('overlay-title');
+            const msg = document.getElementById('overlay-msg');
+
+            overlay.style.display = 'flex';
+            overlay.className = 'overlay ' + (win ? 'win' : 'lose');
+            title.textContent = win ? 'PUZZLE PURIFIED' : 'CURSED BY TILES';
+            msg.textContent = win ? `You escaped the curse in ${document.getElementById('timer').textContent}!` : 'The darkness consumes you...';
+        }
+
+        function revealAllCursed() {
+            const grid = gameState.puzzle.grid;
+            const tiles = document.querySelectorAll('.tile');
+            tiles.forEach(tile => {
+                const r = tile.dataset.r;
+                const c = tile.dataset.c;
+                if (grid[r][c].cursed) {
+                    tile.classList.add('revealed', 'cursed');
+                    tile.textContent = '✖';
+                }
+            });
+        }
+
+        function updateSafeCounter() {
+            document.getElementById('safe-counter').textContent = gameState.totalSafe - gameState.revealedCount;
+        }
+
+        function resetGame() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('timer').textContent = '00:00';
+            gameState.isFlagMode = false;
+            const toggleBtn = document.getElementById('flag-toggle');
+            toggleBtn.textContent = 'Flag Mode: OFF';
+            toggleBtn.classList.remove('active');
+            init();
+        }
+
+        function toggleFlagMode() {
+            gameState.isFlagMode = !gameState.isFlagMode;
+            const toggleBtn = document.getElementById('flag-toggle');
+            toggleBtn.textContent = `Flag Mode: ${gameState.isFlagMode ? 'ON' : 'OFF'}`;
+            toggleBtn.classList.toggle('active', gameState.isFlagMode);
+        }
+
+        function showHelp() {
+            document.getElementById('help-modal').style.display = 'flex';
+        }
+
+        function closeHelp(e) {
+            document.getElementById('help-modal').style.display = 'none';
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

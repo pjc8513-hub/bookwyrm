@@ -1,0 +1,216 @@
+[
+    {
+        "id": 1,
+        "size": 6,
+        "rows": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            5
+        ],
+        "cols": [
+            5,
+            4,
+            4,
+            4,
+            4,
+            4
+        ],
+        "grid": [
+            [
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 1
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 2
+                }
+            ],
+            [
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 2
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                }
+            ],
+            [
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 1
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 2
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                }
+            ],
+            [
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 1
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                }
+            ],
+            [
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 2
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 1
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 1
+                }
+            ],
+            [
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": true,
+                    "clue": 1
+                },
+                {
+                    "cursed": true,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                },
+                {
+                    "cursed": false,
+                    "revealed": false,
+                    "clue": null
+                }
+            ]
+        ]
+    }
+]

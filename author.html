@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Exorcist Puzzle Author</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 40px);
+            gap: 4px;
+        }
+
+        .tile {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #666;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .safe {
+            background: #c8f7c5;
+        }
+
+        .cursed {
+            background: #f7c5c5;
+        }
+
+        .revealed {
+            outline: 3px solid gold;
+        }
+
+        .counts {
+            margin-top: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Exorcist Puzzle Author</h2>
+    <p>
+        Click = toggle safe/cursed<br>
+        Shift+Click = toggle revealed<br>
+        Number keys (0–4) = set clue on revealed safe tile
+    </p>
+
+    <div id="grid" class="grid"></div>
+
+    <div class="counts">
+        <strong>Row counts:</strong> <span id="rows"></span><br>
+        <strong>Col counts:</strong> <span id="cols"></span>
+    </div>
+
+    <button onclick="exportPuzzle()">Export Puzzle</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        const SIZE = 6;
+        let selectedTile = null;
+
+        const grid = Array.from({ length: SIZE }, () =>
+            Array.from({ length: SIZE }, () => ({
+                cursed: false,
+                revealed: false,
+                clue: null
+            }))
+        );
+
+        const gridEl = document.getElementById("grid");
+
+        function render() {
+            gridEl.innerHTML = "";
+            grid.forEach((row, r) => {
+                row.forEach((tile, c) => {
+                    const el = document.createElement("div");
+                    el.className = "tile " + (tile.cursed ? "cursed" : "safe");
+                    if (tile.revealed) el.classList.add("revealed");
+                    el.textContent = tile.revealed && tile.clue !== null ? tile.clue : "";
+                    el.onclick = e => {
+                        selectedTile = tile;
+                        if (e.shiftKey) {
+                            if (!tile.cursed) {
+                                tile.revealed = !tile.revealed;
+
+                                if (tile.revealed) {
+                                    tile.clue = countAdjacentSafe(r, c);
+                                } else {
+                                    tile.clue = null;
+                                }
+                            }
+                        } else {
+                            tile.cursed = !tile.cursed;
+                            tile.revealed = false;
+                            tile.clue = null;
+                        }
+
+                        render();
+                    };
+                    gridEl.appendChild(el);
+                });
+            });
+            updateCounts();
+        }
+
+        function updateCounts() {
+            const rows = grid.map(r => r.filter(t => !t.cursed).length);
+            const cols = Array.from({ length: SIZE }, (_, c) =>
+                grid.map(r => !r[c].cursed).filter(Boolean).length
+            );
+            document.getElementById("rows").textContent = rows.join(", ");
+            document.getElementById("cols").textContent = cols.join(", ");
+        }
+
+        document.addEventListener("keydown", e => {
+            if (!selectedTile) return;
+            if (selectedTile.revealed && !selectedTile.cursed) {
+                const n = parseInt(e.key);
+                if (n >= 0 && n <= 4) {
+                    selectedTile.clue = n;
+                    render();
+                }
+            }
+        });
+
+        function countAdjacentSafe(r, c) {
+            const dirs = [
+                [1, 0], [-1, 0],
+                [0, 1], [0, -1]
+            ];
+
+            return dirs.reduce((count, [dr, dc]) => {
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE) {
+                    if (!grid[nr][nc].cursed) count++;
+                }
+                return count;
+            }, 0);
+        }
+
+
+        function exportPuzzle() {
+            const puzzle = {
+                size: SIZE,
+                rows: grid.map(r => r.filter(t => !t.cursed).length),
+                cols: Array.from({ length: SIZE }, (_, c) =>
+                    grid.map(r => !r[c].cursed).filter(Boolean).length
+                ),
+                grid
+            };
+            document.getElementById("output").textContent =
+                JSON.stringify(puzzle, null, 2);
+        }
+
+        render();
+    </script>
+
+</body>
+
+</html>
